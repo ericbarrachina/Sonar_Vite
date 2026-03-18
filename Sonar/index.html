@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonar - Tu Plataforma de Audio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body>
+
+    <!-- NAV flotante - aparece al hacer scroll -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="nav-logo">
+                <img src="/Sonar_1_-removebg-preview.png" alt="Sonar Logo">
+            </a>
+            <ul class="nav-links">
+                <li><a href="#hero">Inicio</a></li>
+                <li><a href="#caracteristicas">Características</a></li>
+                <li><a href="#historia">Historia</a></li>
+                <li><a href="#galeria">Galería</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema"><img src="https://cdn-icons-png.flaticon.com/128/869/869869.png" alt="tema" id="themeIcon" class="icon-toggle"></button>
+                <a href="/login.html" class="btn-nav">Iniciar Sesión</a>
+            </div>
+            <button class="hamburger" id="hamburger" aria-label="Menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO - Pantalla completa -->
+    <section class="hero" id="hero">
+        <div class="hero-particles" id="particles"></div>
+        <div class="hero-content">
+            <img src="/SonarLogo_solodibujo.png" alt="Sonar" class="hero-logo">
+            <h1 class="hero-title">
+                <span class="hero-title-line">SONAR</span>
+            </h1>
+            <p class="hero-subtitle">Siente el sonido. Vive la experiencia.</p>
+            <div class="hero-buttons">
+                <a href="/login.html" class="btn-primary">Iniciar Sesión</a>
+                <a href="/registro.html" class="btn-secondary">Registrarse</a>
+            </div>
+        </div>
+        <div class="scroll-indicator" id="scrollIndicator">
+            <span>Descubre más</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- CARRUSEL -->
+    <section class="carousel-section" id="galeria">
+        <h2 class="section-title">Explora Sonar</h2>
+        <p class="section-subtitle">Descubre todo lo que tenemos para ti</p>
+        <div class="carousel">
+            <button class="carousel-btn carousel-btn-prev" id="prevBtn" aria-label="Anterior">&#10094;</button>
+            <div class="carousel-track-container">
+                <div class="carousel-track" id="carouselTrack">
+                    <div class="carousel-slide">
+                        <div class="slide-content">
+                            <div class="slide-icon"><img src="https://cdn-icons-png.flaticon.com/128/3659/3659784.png" alt="Audio"></div>
+                            <h3>Audio Inmersivo</h3>
+                            <p>Sumérgete en un océano de sonido con tecnología de audio espacial que te envuelve por completo.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="slide-content">
+                            <div class="slide-icon"><img src="https://cdn-icons-png.flaticon.com/128/3844/3844724.png" alt="Música"></div>
+                            <h3>Millones de Canciones</h3>
+                            <p>Accede a un catálogo infinito de música de todos los géneros y épocas, siempre al alcance de tu mano.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="slide-content">
+                            <div class="slide-icon"><img src="https://cdn-icons-png.flaticon.com/128/2592/2592317.png" alt="Dispositivos"></div>
+                            <h3>Multiplataforma</h3>
+                            <p>Escucha desde cualquier dispositivo. Tu música te sigue a donde vayas, sin interrupciones.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="slide-content">
+                            <div class="slide-icon"><img src="https://cdn-icons-png.flaticon.com/128/4616/4616613.png" alt="IA"></div>
+                            <h3>IA Musical</h3>
+                            <p>Nuestro algoritmo aprende de tus gustos y te recomienda música que te encantará descubrir.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="slide-content">
+                            <div class="slide-icon"><img src="https://cdn-icons-png.flaticon.com/128/1598/1598431.png" alt="Social"></div>
+                            <h3>Social</h3>
+                            <p>Comparte tus playlists, descubre qué escuchan tus amigos y conecta a través de la música.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-btn carousel-btn-next" id="nextBtn" aria-label="Siguiente">&#10095;</button>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+    </section>
+
+    <!-- CARACTERÍSTICAS -->
+    <section class="features-section" id="caracteristicas">
+        <h2 class="section-title">¿Por qué Sonar?</h2>
+        <p class="section-subtitle">Características que nos hacen únicos</p>
+        <div class="features-grid">
+            <div class="feature-card" data-aos>
+                <div class="feature-icon"><img src="https://cdn-icons-png.flaticon.com/128/3844/3844724.png" alt="Calidad"></div>
+                <h3>Calidad Premium</h3>
+                <p>Audio de alta fidelidad con calidad lossless. Cada nota, cada matiz, exactamente como el artista lo creó.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="feature-icon"><img src="https://cdn-icons-png.flaticon.com/128/3212/3212567.png" alt="Innovación"></div>
+                <h3>Innovación Constante</h3>
+                <p>Actualizaciones continuas con las últimas tecnologías para ofrecerte siempre la mejor experiencia.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="feature-icon"><img src="https://cdn-icons-png.flaticon.com/128/1828/1828884.png" alt="Diseño"></div>
+                <h3>Diseño Exclusivo</h3>
+                <p>Interfaz elegante y moderna que combina funcionalidad con un estilo visual impresionante.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="feature-icon"><img src="https://cdn-icons-png.flaticon.com/128/3064/3064155.png" alt="Privacidad"></div>
+                <h3>Privacidad Total</h3>
+                <p>Tu música, tus datos. Protegemos tu información con cifrado de nivel militar.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="feature-icon"><img src="https://cdn-icons-png.flaticon.com/128/616/616494.png" alt="Rápido"></div>
+                <h3>Ultra Rápido</h3>
+                <p>Streaming sin buffering y descargas instantáneas para que nunca pares de escuchar.</p>
+            </div>
+            <div class="feature-card" data-aos>
+                <div class="feature-icon"><img src="https://cdn-icons-png.flaticon.com/128/2970/2970785.png" alt="Personalizar"></div>
+                <h3>Personalizable</h3>
+                <p>Adapta la app a tu estilo. Temas, ecualizador y configuraciones a tu medida.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HISTORIA -->
+    <section class="history-section" id="historia">
+        <h2 class="section-title">Nuestra Historia</h2>
+        <p class="section-subtitle">El camino que nos trajo hasta aquí</p>
+        <div class="timeline">
+            <div class="timeline-item" data-aos>
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="timeline-year">2022</span>
+                    <h3>El Inicio</h3>
+                    <p>Sonar nació como un proyecto universitario con una idea simple: reimaginar cómo la gente experimenta la música. Un grupo de estudiantes apasionados por la tecnología y el sonido decidió crear algo diferente.</p>
+                </div>
+            </div>
+            <div class="timeline-item" data-aos>
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="timeline-year">2023</span>
+                    <h3>Primeros Pasos</h3>
+                    <p>Lanzamos nuestra primera versión beta. Cientos de usuarios probaron la plataforma y nos ayudaron a perfeccionar cada detalle de la experiencia musical.</p>
+                </div>
+            </div>
+            <div class="timeline-item" data-aos>
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="timeline-year">2024</span>
+                    <h3>Crecimiento</h3>
+                    <p>La comunidad creció exponencialmente. Incorporamos audio espacial, listas colaborativas y nuestro motor de recomendaciones basado en IA.</p>
+                </div>
+            </div>
+            <div class="timeline-item" data-aos>
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="timeline-year">2025</span>
+                    <h3>Evolución</h3>
+                    <p>Sonar se consolidó como una plataforma multiplataforma con funciones sociales. Miles de usuarios comparten y descubren música cada día.</p>
+                </div>
+            </div>
+            <div class="timeline-item" data-aos>
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <span class="timeline-year">2026</span>
+                    <h3>El Futuro es Ahora</h3>
+                    <p>Hoy Sonar es más que una app de música. Es una comunidad global donde el sonido conecta personas, culturas y emociones. Y esto es solo el comienzo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>¿Listo para sentir la música?</h2>
+            <p>Únete a miles de usuarios que ya disfrutan de Sonar. Regístrate gratis y comienza tu viaje sonoro.</p>
+            <div class="hero-buttons">
+                <a href="/registro.html" class="btn-primary">Crear Cuenta Gratis</a>
+                <a href="/login.html" class="btn-secondary">Ya tengo cuenta</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contacto">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Sobre Sonar</h3>
+                <p>Tu plataforma de audio definitiva. Innovación y calidad en cada nota.</p>
+                <div class="social-links">
+                    <a href="#" title="Twitter"><img src="https://cdn-icons-png.flaticon.com/128/733/733579.png" alt="Twitter"></a>
+                    <a href="#" title="Instagram"><img src="https://cdn-icons-png.flaticon.com/128/733/733614.png" alt="Instagram"></a>
+                    <a href="#" title="YouTube"><img src="https://cdn-icons-png.flaticon.com/128/733/733646.png" alt="YouTube"></a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <ul>
+                    <li><a href="#hero">Inicio</a></li>
+                    <li><a href="#caracteristicas">Características</a></li>
+                    <li><a href="#historia">Historia</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Soporte</h3>
+                <ul>
+                    <li><a href="#">Centro de Ayuda</a></li>
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Términos de Servicio</a></li>
+                    <li><a href="#">Privacidad</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <ul>
+                    <li><img src="https://cdn-icons-png.flaticon.com/128/561/561127.png" alt="Email" class="contact-icon"> info@sonar.com</li>
+                    <li><img src="https://cdn-icons-png.flaticon.com/128/724/724664.png" alt="Teléfono" class="contact-icon"> +34 900 123 456</li>
+                    <li><img src="https://cdn-icons-png.flaticon.com/128/684/684908.png" alt="Ubicación" class="contact-icon"> Madrid, España</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span id="currentYear"></span> Sonar. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script type="module" src="/src/animaciones.js"></script>
+
+</body>
+</html>
