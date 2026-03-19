@@ -1291,3 +1291,417 @@ body.register-page .login-form {
         margin-bottom: 14px;
     }
 }
+
+/* ========================================
+   HOME PAGE
+   ======================================== */
+body.home-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at 25% 20%, rgba(188, 19, 254, 0.2), transparent 45%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 35%, #2d1050 100%);
+    color: #fff;
+    overflow-x: hidden;
+}
+
+.home-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+    position: relative;
+}
+
+.home-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 28px 18px;
+    background: rgba(12, 5, 26, 0.92);
+    border-right: 1px solid rgba(188, 19, 254, 0.25);
+    backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    z-index: 20;
+}
+
+.home-sidebar-header {
+    display: flex;
+    justify-content: center;
+}
+
+.home-logo-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.home-logo {
+    width: 140px;
+    height: auto;
+    filter: drop-shadow(0 0 12px rgba(188, 19, 254, 0.5));
+}
+
+.home-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.home-nav-item {
+    color: rgba(255, 255, 255, 0.82);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.home-nav-item:hover,
+.home-nav-item.active {
+    color: #fff;
+    background: rgba(188, 19, 254, 0.2);
+    border-color: rgba(188, 19, 254, 0.5);
+    transform: translateX(4px);
+}
+
+.home-nav-icon {
+    font-size: 1.05rem;
+}
+
+.home-logout-btn {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+}
+
+.home-main-content {
+    padding: 48px 44px;
+    position: relative;
+    z-index: 5;
+}
+
+.home-main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: rgba(18, 8, 36, 0.82);
+    border: 1px solid rgba(188, 19, 254, 0.28);
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin-bottom: 44px;
+    box-shadow: 0 10px 28px rgba(4, 2, 10, 0.28);
+}
+
+.home-header-text {
+    min-width: 0;
+}
+
+.home-main-header h1 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    letter-spacing: 1px;
+    text-shadow: 0 0 18px rgba(188, 19, 254, 0.35);
+    margin-bottom: 8px;
+}
+
+.home-welcome-subtitle {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 1.05rem;
+    margin-bottom: 0;
+}
+
+.home-settings-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(188, 19, 254, 0.2);
+    border: 1px solid rgba(188, 19, 254, 0.5);
+    box-shadow: 0 0 16px rgba(188, 19, 254, 0.28);
+    transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-settings-btn:hover {
+    transform: rotate(24deg) scale(1.08);
+    background: rgba(188, 19, 254, 0.34);
+    box-shadow: 0 0 20px rgba(188, 19, 254, 0.45);
+}
+
+.home-canciones-panel {
+    border-radius: 22px;
+    border: 1px solid rgba(188, 19, 254, 0.28);
+    background: linear-gradient(135deg, rgba(18, 8, 36, 0.92), rgba(30, 12, 56, 0.88));
+    padding: 24px;
+    min-height: 65vh;
+    margin-top: 10px;
+    margin-bottom: 28px;
+    box-shadow: 0 20px 40px rgba(4, 2, 10, 0.45), 0 0 40px rgba(188, 19, 254, 0.12);
+}
+
+.home-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.home-panel-head h2 {
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+.home-badge {
+    background: rgba(188, 19, 254, 0.22);
+    border: 1px solid rgba(188, 19, 254, 0.45);
+    border-radius: 999px;
+    padding: 8px 14px;
+    color: #f3ddff;
+    font-size: 0.86rem;
+    font-weight: 500;
+}
+
+.home-canciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 220px));
+    gap: 14px;
+    justify-content: start;
+}
+
+.song-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(188, 19, 254, 0.2);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.song-cover {
+    width: 100%;
+    max-width: 120px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    border: 1px dashed rgba(188, 19, 254, 0.45);
+    background: linear-gradient(145deg, rgba(188, 19, 254, 0.16), rgba(255, 255, 255, 0.04));
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 0.82rem;
+}
+
+.song-card h3 {
+    color: #fff;
+    margin-bottom: 0;
+    font-size: 0.98rem;
+}
+
+.song-artist {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.84rem;
+}
+
+.song-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.song-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(188, 19, 254, 0.45);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 0.94rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.song-action-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(188, 19, 254, 0.75);
+    background: rgba(188, 19, 254, 0.2);
+}
+
+.song-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(188, 19, 254, 0.55);
+    box-shadow: 0 10px 24px rgba(188, 19, 254, 0.18);
+}
+
+.home-star-wrap {
+    position: fixed;
+    top: 48%;
+    right: 28px;
+    z-index: 35;
+}
+
+.home-star-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.65);
+    background: radial-gradient(circle at 35% 30%, #ffe48f 0%, #ffcc34 60%, #f7b500 100%);
+    font-size: 1.8rem;
+    cursor: pointer;
+    box-shadow: 0 0 22px rgba(255, 214, 102, 0.65);
+    animation: starPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 22px rgba(255, 214, 102, 0.65); }
+    50% { transform: scale(1.08); box-shadow: 0 0 28px rgba(255, 214, 102, 0.95); }
+}
+
+.home-star-popup {
+    position: absolute;
+    top: -22px;
+    right: 76px;
+    width: min(300px, 70vw);
+    padding: 16px 18px 14px;
+    border-radius: 14px;
+    background: rgba(12, 5, 26, 0.96);
+    border: 1px solid rgba(188, 19, 254, 0.4);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.home-star-popup.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.home-star-popup h3 {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.home-star-popup p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
+.home-star-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.home-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 19, 254, 0.5);
+    background: rgba(20, 8, 40, 0.92);
+    z-index: 45;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.home-menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #fff;
+    margin: 4px 0;
+}
+
+@media (max-width: 980px) {
+    .home-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .home-sidebar {
+        position: fixed;
+        left: -280px;
+        width: 260px;
+        transition: left 0.25s ease;
+    }
+
+    .home-sidebar.open {
+        left: 0;
+    }
+
+    .home-main-content {
+        padding: 86px 18px 24px;
+    }
+
+    .home-main-header {
+        padding: 16px;
+        margin-bottom: 30px;
+    }
+
+    .home-main-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .home-settings-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 1.35rem;
+    }
+
+    .song-cover {
+        max-width: 96px;
+    }
+
+    .home-canciones-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .song-card {
+        min-width: 0;
+    }
+
+    .home-star-wrap {
+        right: 20px;
+        top: 50%;
+        bottom: auto;
+    }
+
+    .home-star-popup {
+        top: -20px;
+        bottom: auto;
+        left: auto;
+        right: 76px;
+    }
+
+    .home-menu-toggle {
+        display: block;
+    }
+}

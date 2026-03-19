@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonar - Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body class="home-page">
+    <button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menú lateral">
+        <span></span><span></span><span></span>
+    </button>
+
+    <div class="home-layout">
+        <aside class="home-sidebar" id="homeSidebar">
+            <div class="home-sidebar-header">
+                <a href="/home.html" class="home-logo-link">
+                    <img src="/Sonar/public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+                </a>
+            </div>
+
+            <nav class="home-nav" aria-label="Menú principal">
+                <a href="#" class="home-nav-item active">
+                    <span class="home-nav-icon"></span>
+                    Guardados
+                </a>
+                <a href="#" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Borradores
+                </a>
+                <a href="#" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Playlists
+                </a>
+                <a href="#" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Explorar
+                </a>
+            </nav>
+
+            <button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesión</button>
+        </aside>
+
+        <main class="home-main-content">
+            <header class="home-main-header">
+                <div class="home-header-text">
+                    <h1 id="saludoUsuario">Hola, usuario!</h1>
+                    <p class="home-welcome-subtitle">Te reconocemos, artista. Dale play a tu universo.</p>
+                </div>
+                <a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+            </header>
+
+            <section class="home-canciones-panel" aria-label="Panel de canciones">
+                <div class="home-panel-head">
+                    <h2>Canciones</h2>
+                    <span class="home-badge">Recomendadas para ti</span>
+                </div>
+
+                <div class="home-canciones-grid">
+                    <article class="song-card">
+                        <div class="song-cover" aria-hidden="true">Portada</div>
+                        <h3>Neon Nights</h3>
+                        <p class="song-artist">Nova Skies</p>
+                        <div class="song-actions" aria-label="Acciones de la canción">
+                            <button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+                            <button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+                            <button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+                        </div>
+                    </article>
+                    <article class="song-card">
+                        <div class="song-cover" aria-hidden="true">Portada</div>
+                        <h3>Pulse in Motion</h3>
+                        <p class="song-artist">Orbit Kids</p>
+                        <div class="song-actions" aria-label="Acciones de la canción">
+                            <button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+                            <button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+                            <button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+                        </div>
+                    </article>
+                    <article class="song-card">
+                        <div class="song-cover" aria-hidden="true">Portada</div>
+                        <h3>Echoes of You</h3>
+                        <p class="song-artist">Lumen Duo</p>
+                        <div class="song-actions" aria-label="Acciones de la canción">
+                            <button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+                            <button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+                            <button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+                        </div>
+                    </article>
+                    <article class="song-card">
+                        <div class="song-cover" aria-hidden="true">Portada</div>
+                        <h3>Night Runner</h3>
+                        <p class="song-artist">Croma Wave</p>
+                        <div class="song-actions" aria-label="Acciones de la canción">
+                            <button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+                            <button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+                            <button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <div class="home-star-wrap">
+            <button class="home-star-button" id="homeStarButton" aria-label="Abrir sugerencia destacada">&#11088;</button>
+            <div class="home-star-popup" id="homeStarPopup" role="dialog" aria-live="polite">
+                <button class="home-star-close" id="homeStarClose" aria-label="Cerrar">&times;</button>
+                <h3>Tu pick del dia</h3>
+                <p>Hemos preparado un mix segun tu energia de hoy. Pulsa en Explorar y pruebalo.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
