@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Playlists</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+	<link rel="stylesheet" href="./src/styles/style.css">
+</head>
+<body class="home-page playlist-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/home.html" class="home-logo-link">
+					<img src="/Sonar/public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal">
+				<a href="/save.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Guardados
+				</a>
+				<a href="/playlist.html" class="home-nav-item active" aria-current="page">
+					<span class="home-nav-icon"></span>
+					Playlists
+				</a>
+				<a href="/buscar.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Explorar
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1>Tus playlists</h1>
+					<p class="home-welcome-subtitle">Organiza tus canciones por mood, momento o estilo.</p>
+				</div>
+				<div class="home-header-actions" aria-label="Accesos rapidos">
+					<a href="/home.html" class="home-settings-btn home-btn" aria-label="Volver a Home">
+						<i class="fa-solid fa-house home-btn-icon" aria-hidden="true"></i>
+					</a>
+					<a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+				</div>
+			</header>
+
+			<section class="home-canciones-panel" aria-label="Panel de playlists">
+				<div class="home-panel-head">
+					<h2>Biblioteca de playlists</h2>
+					<span class="home-badge" id="playlistCount">0 playlists</span>
+				</div>
+				<p id="playlistNowPlaying" class="playlist-now-playing" aria-live="polite">No hay reproduccion activa.</p>
+
+				<div class="playlist-grid" id="playlistGrid">
+					<button type="button" id="createPlaylistCard" class="playlist-create-card" aria-label="Crear nueva playlist">
+						<span class="playlist-create-plus">+</span>
+						<span class="playlist-create-text">Crear nueva playlist</span>
+					</button>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="./src/main.js"></script>
+</body>
+</html>

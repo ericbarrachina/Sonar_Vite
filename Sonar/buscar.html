@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Buscar</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+	<link rel="stylesheet" href="./src/styles/style.css">
+</head>
+<body class="home-page buscar-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/home.html" class="home-logo-link">
+					<img src="/Sonar/public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal">
+				<a href="/save.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Guardados
+				</a>
+				<a href="/playlist.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Playlists
+				</a>
+				<a href="/buscar.html" class="home-nav-item active" aria-current="page">
+					<span class="home-nav-icon"></span>
+					Explorar
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1>Explorar</h1>
+					<p class="home-welcome-subtitle">Busca artistas y canciones para descubrir tu siguiente favorito.</p>
+				</div>
+				<div class="home-header-actions" aria-label="Accesos rapidos">
+					<a href="/home.html" class="home-settings-btn home-btn" aria-label="Volver a Home">
+						<i class="fa-solid fa-house home-btn-icon" aria-hidden="true"></i>
+					</a>
+					<a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+				</div>
+			</header>
+
+			<section class="home-canciones-panel" aria-label="Panel de busqueda musical">
+				<div class="home-panel-head buscar-panel-head">
+					<h2>Buscar musica</h2>
+					<span class="home-badge" id="searchCount">8 resultados</span>
+				</div>
+
+				<form class="buscar-controls" id="buscarControls" role="search" aria-label="Buscar por artista o cancion">
+					<div class="buscar-input-wrap">
+						<label for="buscarInput" class="buscar-label">Busqueda</label>
+						<input type="text" id="buscarInput" class="buscar-input" placeholder="Ej: Nova, Neon, Orbit..." autocomplete="off">
+					</div>
+					<div class="buscar-filter-wrap">
+						<label for="buscarTipo" class="buscar-label">Filtrar por</label>
+						<select id="buscarTipo" class="buscar-select">
+							<option value="todo">Cancion o artista</option>
+							<option value="cancion">Solo canciones</option>
+							<option value="artista">Solo artistas</option>
+						</select>
+					</div>
+				</form>
+
+				<div class="home-canciones-grid buscar-grid" id="buscarResultados">
+					<article class="song-card buscar-song-card" data-song="Neon Nights" data-artist="Nova Skies">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Neon Nights</h3>
+						<p class="song-artist">Nova Skies</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Pulse in Motion" data-artist="Orbit Kids">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Pulse in Motion</h3>
+						<p class="song-artist">Orbit Kids</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Echoes of You" data-artist="Lumen Duo">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Echoes of You</h3>
+						<p class="song-artist">Lumen Duo</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Night Runner" data-artist="Croma Wave">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Night Runner</h3>
+						<p class="song-artist">Croma Wave</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Electric Bloom" data-artist="Iris Lane">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Electric Bloom</h3>
+						<p class="song-artist">Iris Lane</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Glass Heartbeat" data-artist="Nura Vox">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Glass Heartbeat</h3>
+						<p class="song-artist">Nura Vox</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Last Signal" data-artist="Aurora Set">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Last Signal</h3>
+						<p class="song-artist">Aurora Set</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+					<article class="song-card buscar-song-card" data-song="Horizon Flame" data-artist="Mira Flux">
+						<div class="song-cover" aria-hidden="true">Portada</div>
+						<h3>Horizon Flame</h3>
+						<p class="song-artist">Mira Flux</p>
+						<div class="song-actions" aria-label="Acciones de la cancion">
+							<button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+							<button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+							<button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+						</div>
+					</article>
+				</div>
+
+				<p id="buscarNoResultados" class="buscar-empty" hidden>No hay resultados para esa busqueda.</p>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="./src/main.js"></script>
+</body>
+</html>

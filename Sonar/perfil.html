@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Perfil</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="./src/styles/style.css">
+</head>
+<body class="home-page perfil-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/home.html" class="home-logo-link">
+					<img src="/Sonar/public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal">
+				<a href="/home.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Inicio
+				</a>
+				<a href="/perfil.html" class="home-nav-item active" aria-current="page">
+					<span class="home-nav-icon"></span>
+					Perfil
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1>Tu perfil</h1>
+					<p class="home-welcome-subtitle">Actualiza tus datos personales y refuerza la seguridad de tu cuenta.</p>
+				</div>
+				<a href="/home.html" class="home-settings-btn" aria-label="Volver a Home">&#8592;</a>
+			</header>
+
+			<section class="home-canciones-panel perfil-settings-panel" aria-label="Configuracion de perfil">
+				<div class="home-panel-head">
+					<h2>Configuracion de cuenta</h2>
+					<span class="home-badge">Datos personales</span>
+				</div>
+
+				<div class="perfil-settings-grid">
+					<article class="perfil-card" aria-label="Bloque para editar apodo">
+						<div class="perfil-card-head">
+							<h3>Cambiar apodo</h3>
+							<p>Actualiza el nombre con el que te ven en Sonar.</p>
+						</div>
+						<form id="perfilAliasForm" class="login-form perfil-form" autocomplete="off">
+							<div class="form-group">
+								<label for="apodo">Apodo</label>
+								<input type="text" id="apodo" name="apodo" placeholder="Tu nuevo apodo" maxlength="30" required>
+							</div>
+							<button type="submit" class="btn-primary perfil-btn">Guardar apodo</button>
+						</form>
+					</article>
+
+					<article class="perfil-card" aria-label="Bloque para cambiar contrasena">
+						<div class="perfil-card-head">
+							<h3>Cambiar contrasena</h3>
+							<p>Refuerza tu cuenta con una clave nueva y segura.</p>
+						</div>
+						<form id="perfilPasswordForm" class="login-form perfil-form" autocomplete="off">
+							<div class="form-group">
+								<label for="passwordActual">Contrasena actual</label>
+								<input type="password" id="passwordActual" name="passwordActual" placeholder="••••••••" required>
+							</div>
+							<div class="form-group">
+								<label for="passwordNueva">Nueva contrasena</label>
+								<input type="password" id="passwordNueva" name="passwordNueva" placeholder="Minimo 8 caracteres" minlength="8" required>
+							</div>
+							<div class="form-group">
+								<label for="passwordConfirmacion">Confirmar nueva contrasena</label>
+								<input type="password" id="passwordConfirmacion" name="passwordConfirmacion" placeholder="Repite la nueva contrasena" minlength="8" required>
+							</div>
+							<button type="submit" class="btn-primary perfil-btn">Cambiar contrasena</button>
+						</form>
+					</article>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="/src/main.js"></script>
+</body>
+</html>
