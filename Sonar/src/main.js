@@ -25,6 +25,57 @@ const SONG_INFO_CATALOG = {
     'horizon flame|mira flux': { album: 'Horizon', genre: 'Dream Pop', year: '2020', duration: '3:41', cover: 'https://picsum.photos/seed/horizon-flame/240/240', plays: 887600 }
 };
 
+const ARTIST_PROFILE_CATALOG = {
+    'nova skies': {
+        started: 2018,
+        city: 'Barcelona, ES',
+        image: 'https://picsum.photos/seed/artist-nova-skies/560/560',
+        bio: 'Proyecto synth-pop con enfoque cinematico y atmosferas nocturnas.'
+    },
+    'orbit kids': {
+        started: 2017,
+        city: 'Madrid, ES',
+        image: 'https://picsum.photos/seed/artist-orbit-kids/560/560',
+        bio: 'Duo electropop que combina ritmos de club con hooks luminosos.'
+    },
+    'lumen duo': {
+        started: 2016,
+        city: 'Valencia, ES',
+        image: 'https://picsum.photos/seed/artist-lumen-duo/560/560',
+        bio: 'Formacion indie-pop de texturas suaves, coros amplios y melodias emotivas.'
+    },
+    'croma wave': {
+        started: 2019,
+        city: 'Sevilla, ES',
+        image: 'https://picsum.photos/seed/artist-croma-wave/560/560',
+        bio: 'Productor retrowave con tintes ochenteros y lineas de bajo marcadas.'
+    },
+    'iris lane': {
+        started: 2015,
+        city: 'Bilbao, ES',
+        image: 'https://picsum.photos/seed/artist-iris-lane/560/560',
+        bio: 'Voz alternativa que mezcla pop moderno con arreglos electronicos finos.'
+    },
+    'nura vox': {
+        started: 2020,
+        city: 'Zaragoza, ES',
+        image: 'https://picsum.photos/seed/artist-nura-vox/560/560',
+        bio: 'Acto electronic con beats minimalistas, capas brillantes y enfoque vocal.'
+    },
+    'aurora set': {
+        started: 2014,
+        city: 'Malaga, ES',
+        image: 'https://picsum.photos/seed/artist-aurora-set/560/560',
+        bio: 'Banda synth-pop orientada a estribillos grandes y produccion elegante.'
+    },
+    'mira flux': {
+        started: 2013,
+        city: 'Alicante, ES',
+        image: 'https://picsum.photos/seed/artist-mira-flux/560/560',
+        bio: 'Proyecto dream-pop de enfoque atmosferico, tempos medios y texturas etereas.'
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Inicialización de UI y Animaciones
     initTheme();
@@ -57,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 6. Interacciones de busqueda (pagina Explorar)
     initBuscarInteractions();
+
+    // 6.1 Vista de artista
+    initArtistPage();
 
     // 7. Guardar canciones en playlists desde las tarjetas
     initPlaylistQuickSave();
@@ -277,6 +331,22 @@ function initHomeInteractions() {
     }
 }
 
+function normalizeSearchText(value) {
+    return (value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+}
+
+function toDisplayName(value) {
+    return (value || '')
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
 function initBuscarInteractions() {
     const searchInput = document.getElementById('buscarInput');
     const searchType = document.getElementById('buscarTipo');
@@ -286,19 +356,14 @@ function initBuscarInteractions() {
 
     if (!searchInput || !searchType || cards.length === 0) return;
 
-    const normalize = (value) => (value || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-
     const runFilter = () => {
-        const term = normalize(searchInput.value.trim());
+        const term = normalizeSearchText(searchInput.value.trim());
         const type = searchType.value;
         let visibleCount = 0;
 
         cards.forEach((card) => {
-            const song = normalize(card.dataset.song);
-            const artist = normalize(card.dataset.artist);
+            const song = normalizeSearchText(card.dataset.song);
+            const artist = normalizeSearchText(card.dataset.artist);
 
             let match = true;
             if (term) {
@@ -323,6 +388,244 @@ function initBuscarInteractions() {
     searchInput.addEventListener('input', runFilter);
     searchType.addEventListener('change', runFilter);
     runFilter();
+}
+
+function formatCompactCount(value) {
+    if (!Number.isFinite(value)) return 'N/D';
+    return new Intl.NumberFormat('es-ES', {
+        notation: 'compact',
+        maximumFractionDigits: 1
+    }).format(value);
+}
+
+function parseDurationToSeconds(durationText) {
+    const parts = String(durationText || '').split(':').map((value) => Number.parseInt(value, 10));
+    if (parts.length !== 2 || !Number.isFinite(parts[0]) || !Number.isFinite(parts[1])) return null;
+    return (parts[0] * 60) + parts[1];
+}
+
+function formatSecondsAsDuration(totalSeconds) {
+    if (!Number.isFinite(totalSeconds)) return 'N/D';
+    const safeSeconds = Math.max(0, Math.round(totalSeconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = String(safeSeconds % 60).padStart(2, '0');
+    return `${minutes}:${seconds}`;
+}
+
+function getCatalogSongs() {
+    return Object.entries(SONG_INFO_CATALOG).map(([key, details]) => {
+        const [rawSong = '', rawArtist = ''] = key.split('|');
+        const song = toDisplayName(rawSong);
+        const artist = toDisplayName(rawArtist);
+
+        return {
+            song,
+            artist,
+            album: details.album || 'Single',
+            genre: details.genre || 'Pop',
+            year: details.year || 'N/D',
+            duration: details.duration || 'N/D',
+            cover: details.cover || `https://picsum.photos/seed/${encodeURIComponent(`${song}-${artist}`)}/240/240`,
+            plays: Number(details.plays) || createPseudoPlays(song, artist)
+        };
+    });
+}
+
+function buildArtistProfile(artistName, songs) {
+    const normalizedArtist = normalizeSearchText(artistName);
+    const fromCatalog = ARTIST_PROFILE_CATALOG[normalizedArtist] || {};
+
+    const yearValues = songs
+        .map((song) => Number.parseInt(song.year, 10))
+        .filter((value) => Number.isFinite(value));
+
+    const startYear = Number.isFinite(fromCatalog.started)
+        ? fromCatalog.started
+        : (yearValues.length > 0 ? Math.min(...yearValues) : 'N/D');
+
+    const totalViews = songs.reduce((sum, song) => sum + (Number(song.plays) || 0), 0);
+    const monthlyListeners = Math.max(15000, Math.round(totalViews / 18));
+
+    const albumSet = new Set();
+    songs.forEach((song) => {
+        if (song.album) albumSet.add(song.album);
+    });
+    const albums = Array.from(albumSet);
+
+    const genreStats = {};
+    songs.forEach((song) => {
+        const genre = song.genre || 'Pop';
+        genreStats[genre] = (genreStats[genre] || 0) + 1;
+    });
+
+    const genres = Object.entries(genreStats)
+        .sort((a, b) => b[1] - a[1])
+        .map(([genre]) => genre);
+
+    const avgSeconds = songs
+        .map((song) => parseDurationToSeconds(song.duration))
+        .filter((value) => Number.isFinite(value));
+
+    const averageDuration = avgSeconds.length > 0
+        ? formatSecondsAsDuration(avgSeconds.reduce((sum, value) => sum + value, 0) / avgSeconds.length)
+        : 'N/D';
+
+    const currentYear = new Date().getFullYear();
+    const yearsActive = Number.isFinite(Number(startYear))
+        ? `${Math.max(1, currentYear - Number(startYear) + 1)} años`
+        : 'N/D';
+
+    const topSongs = [...songs]
+        .sort((a, b) => (Number(b.plays) || 0) - (Number(a.plays) || 0))
+        .slice(0, 5);
+
+    return {
+        name: artistName,
+        city: fromCatalog.city || 'Escena independiente',
+        image: fromCatalog.image || `https://picsum.photos/seed/artist-${encodeURIComponent(normalizedArtist || 'sonar')}/560/560`,
+        bio: fromCatalog.bio || `${artistName} es un proyecto emergente con presencia en la escena digital y enfoque en sonido contemporaneo.`,
+        startYear,
+        totalViews,
+        monthlyListeners,
+        albums,
+        genres,
+        mainGenre: genres[0] || 'Pop',
+        averageDuration,
+        yearsActive,
+        topSongs
+    };
+}
+
+function initArtistPage() {
+    if (!document.body.classList.contains('artist-page')) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const artistParam = (params.get('name') || '').trim();
+    const normalizedParam = normalizeSearchText(artistParam);
+    const catalogSongs = getCatalogSongs();
+
+    let songs = catalogSongs.filter((song) => normalizeSearchText(song.artist) === normalizedParam);
+
+    if (songs.length === 0 && normalizedParam) {
+        songs = catalogSongs.filter((song) => normalizeSearchText(song.artist).includes(normalizedParam));
+    }
+
+    const resolvedArtist = songs[0]?.artist || (artistParam ? toDisplayName(artistParam) : 'Artista no encontrado');
+    const profile = buildArtistProfile(resolvedArtist, songs);
+
+    const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    };
+
+    setText('artistHeaderTitle', resolvedArtist);
+    setText('artistName', resolvedArtist);
+    setText('artistHeaderSubtitle', songs.length > 0
+        ? `Descubre su trayectoria, lanzamientos y datos clave.`
+        : `No encontramos canciones de este artista en el catalogo actual.`);
+    setText('artistTagline', `${profile.mainGenre} • ${profile.city}`);
+    setText('artistStartYear', String(profile.startYear));
+    setText('artistViews', formatPlayCount(profile.totalViews));
+    setText('artistAlbumCount', `${profile.albums.length}`);
+    setText('artistMonthlyListeners', formatCompactCount(profile.monthlyListeners));
+    setText('artistYearsActive', profile.yearsActive);
+    setText('artistAvgDuration', profile.averageDuration);
+    setText('artistBio', profile.bio);
+
+    const image = document.getElementById('artistImage');
+    if (image) {
+        image.src = profile.image;
+        image.alt = `Imagen de ${resolvedArtist}`;
+        image.addEventListener('error', () => {
+            image.src = `https://picsum.photos/seed/artist-fallback-${encodeURIComponent(resolvedArtist)}/560/560`;
+        }, { once: true });
+    }
+
+    const albumsList = document.getElementById('artistAlbumsList');
+    if (albumsList) {
+        albumsList.innerHTML = '';
+        const albums = profile.albums.length > 0 ? profile.albums : ['Sin albumes publicados'];
+        albums.forEach((album) => {
+            const item = document.createElement('li');
+            item.textContent = album;
+            albumsList.appendChild(item);
+        });
+    }
+
+    const genresWrap = document.getElementById('artistGenres');
+    if (genresWrap) {
+        genresWrap.innerHTML = '';
+        const genres = profile.genres.length > 0 ? profile.genres : ['Pop'];
+        genres.forEach((genre) => {
+            const chip = document.createElement('span');
+            chip.className = 'artist-genre-chip';
+            chip.textContent = genre;
+            genresWrap.appendChild(chip);
+        });
+    }
+
+    const topSongsList = document.getElementById('artistTopSongsList');
+    if (topSongsList) {
+        topSongsList.innerHTML = '';
+
+        if (profile.topSongs.length === 0) {
+            const item = document.createElement('li');
+            item.className = 'artist-top-empty';
+            item.textContent = 'No hay canciones disponibles todavia.';
+            topSongsList.appendChild(item);
+        } else {
+            profile.topSongs.forEach((song, index) => {
+                const item = document.createElement('li');
+                const title = document.createElement('span');
+                title.textContent = `${index + 1}. ${song.song}`;
+
+                const views = document.createElement('strong');
+                views.textContent = formatPlayCount(song.plays);
+
+                item.appendChild(title);
+                item.appendChild(views);
+                topSongsList.appendChild(item);
+            });
+        }
+    }
+
+    const emptyState = document.getElementById('artistEmptyState');
+    if (emptyState) {
+        emptyState.hidden = songs.length > 0;
+    }
+
+    const playBtn = document.getElementById('artistPlayBtn');
+    if (playBtn) {
+        playBtn.disabled = songs.length === 0;
+        playBtn.addEventListener('click', () => {
+            if (songs.length === 0) return;
+            const queue = songs.map((song) => ({
+                song: song.song,
+                artist: song.artist,
+                album: song.album,
+                genre: song.genre,
+                cover: song.cover
+            }));
+            startGlobalPlayback(queue, 0, true);
+        });
+    }
+
+    const shuffleBtn = document.getElementById('artistShuffleBtn');
+    if (shuffleBtn) {
+        shuffleBtn.disabled = songs.length === 0;
+        shuffleBtn.addEventListener('click', () => {
+            if (songs.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * songs.length);
+            const queue = songs.map((song) => ({
+                song: song.song,
+                artist: song.artist,
+                album: song.album,
+                genre: song.genre,
+                cover: song.cover
+            }));
+            startGlobalPlayback(queue, randomIndex, true);
+        });
+    }
 }
 
 function initPlaylistQuickSave() {
@@ -362,9 +665,7 @@ function initPlaylistQuickSave() {
             const card = addButton.closest('.song-card');
             if (!card) return;
 
-            const songTitle = card.querySelector('h3')?.textContent?.trim() || 'Cancion';
-            const songArtist = card.querySelector('.song-artist')?.textContent?.trim() || 'Artista';
-            const songData = { song: songTitle, artist: songArtist };
+            const songData = extractSongFromCard(card);
 
             openPlaylistPopover(addButton, songData);
         });
@@ -430,6 +731,7 @@ function initSongCardVisuals(root = document) {
         if (cover && !cover.querySelector('img')) {
             cover.innerHTML = `<img src="${info.cover}" alt="Portada de ${info.song}">`;
         }
+        card.dataset.cover = info.cover;
 
         const artistText = info.artist;
         const artistEl = card.querySelector('.song-artist');
@@ -879,6 +1181,7 @@ function initSavedSongsPage() {
         card.className = 'song-card saved-song-card';
         card.dataset.song = songData.song || 'Cancion';
         card.dataset.artist = songData.artist || 'Artista';
+        if (songData.cover) card.dataset.cover = songData.cover;
 
         card.innerHTML = `
             <div class="song-cover" aria-hidden="true">Portada</div>
@@ -917,7 +1220,10 @@ function initGlobalPlayerBar() {
             <button type="button" class="player-control-btn" data-player-action="next" aria-label="Siguiente cancion">&#9197;</button>
         </div>
         <div class="player-track-info">
-            <div class="player-cover" id="playerCover" aria-hidden="true">♪</div>
+            <div class="player-cover" id="playerCover" aria-hidden="true">
+                <img class="player-cover-img" id="playerCoverImg" src="" alt="" hidden>
+                <span class="player-cover-fallback" id="playerCoverFallback" hidden></span>
+            </div>
             <div class="player-meta">
                 <p class="player-song" id="playerSongTitle">Sin reproduccion</p>
                 <p class="player-artist" id="playerSongArtist">Selecciona una cancion para empezar</p>
@@ -947,9 +1253,22 @@ function initGlobalPlayerBar() {
         volumeInput: bar.querySelector('#playerVolume'),
         volumeIcon: bar.querySelector('#playerVolumeIcon'),
         cover: bar.querySelector('#playerCover'),
+        coverImg: bar.querySelector('#playerCoverImg'),
+        coverFallback: bar.querySelector('#playerCoverFallback'),
         songTitle: bar.querySelector('#playerSongTitle'),
         songArtist: bar.querySelector('#playerSongArtist')
     };
+
+    globalPlayer.coverImg.addEventListener('error', () => {
+        globalPlayer.coverImg.src = '';
+        globalPlayer.coverImg.hidden = true;
+        globalPlayer.coverFallback.hidden = true;
+    });
+
+    globalPlayer.coverImg.addEventListener('load', () => {
+        globalPlayer.coverImg.hidden = false;
+        globalPlayer.coverFallback.hidden = true;
+    });
 
     globalPlayer.playToggle.addEventListener('click', () => {
         if (globalPlayerState.queue.length === 0) return;
@@ -1017,7 +1336,8 @@ function extractSongFromCard(card) {
     const artist = card.querySelector('.song-artist')?.textContent?.trim() || card.dataset.artist || 'Artista';
     const album = card.dataset.album || '';
     const genre = card.dataset.genre || '';
-    return { song, artist, album, genre };
+    const cover = card.querySelector('.song-cover img')?.getAttribute('src') || card.dataset.cover || '';
+    return { song, artist, album, genre, cover };
 }
 
 function getSongQueueFromCards() {
@@ -1078,13 +1398,20 @@ function updateGlobalPlayerUI() {
     if (!currentSong) {
         globalPlayer.songTitle.textContent = 'Sin reproduccion';
         globalPlayer.songArtist.textContent = 'Selecciona una cancion para empezar';
-        globalPlayer.cover.textContent = '♪';
+        globalPlayer.coverImg.src = '';
+        globalPlayer.coverImg.alt = '';
+        globalPlayer.coverImg.hidden = true;
+        globalPlayer.coverFallback.hidden = true;
         return;
     }
 
+    const songInfo = getSongInfo(currentSong);
+
     globalPlayer.songTitle.textContent = currentSong.song;
     globalPlayer.songArtist.textContent = `${currentSong.artist}${currentSong.playlist ? ` • ${currentSong.playlist}` : ''}`;
-    globalPlayer.cover.textContent = currentSong.song.trim().charAt(0).toUpperCase() || '♪';
+    globalPlayer.coverFallback.hidden = true;
+    globalPlayer.coverImg.alt = `Portada de ${songInfo.song}`;
+    globalPlayer.coverImg.src = currentSong.cover || songInfo.cover;
 
     const playlistNowPlaying = document.getElementById('playlistNowPlaying');
     if (playlistNowPlaying) {

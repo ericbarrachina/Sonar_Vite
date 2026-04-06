@@ -1107,8 +1107,7 @@ header {
     transition: background-color 0.3s ease;
 }
 
-body.dark-mode header {
-    background-color: #0a0a0a;
+body.dark-mode header:not(.home-main-header) {
     border-bottom: 3px solid #BC13FE;
 }
 
@@ -2189,6 +2188,207 @@ body.perfil-page .perfil-settings-panel {
 }
 
 /* ========================================
+   ARTIST PAGE
+   ======================================== */
+.artist-profile-panel {
+    min-height: auto;
+}
+
+.artist-hero {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 18px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(188, 19, 254, 0.32);
+    background: linear-gradient(160deg, rgba(188, 19, 254, 0.16), rgba(255, 255, 255, 0.04));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 12px 26px rgba(0, 0, 0, 0.26);
+}
+
+.artist-image-shell {
+    border-radius: 14px;
+    border: 1px solid rgba(188, 19, 254, 0.42);
+    background: rgba(10, 6, 20, 0.85);
+    overflow: hidden;
+    min-height: 220px;
+}
+
+.artist-image {
+    width: 100%;
+    height: 100%;
+    min-height: 220px;
+    object-fit: cover;
+    display: block;
+}
+
+.artist-hero-content {
+    min-width: 0;
+}
+
+.artist-name {
+    font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+    color: #ffffff;
+    margin: 0 0 8px;
+    letter-spacing: 0.3px;
+}
+
+.artist-tagline {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.76);
+    font-size: 0.96rem;
+}
+
+.artist-stats-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.artist-stat-card {
+    border-radius: 12px;
+    border: 1px solid rgba(188, 19, 254, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.artist-stat-card span {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.artist-stat-card strong {
+    font-size: 1.05rem;
+    color: #ffffff;
+}
+
+.artist-actions {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.artist-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.artist-action-btn:disabled,
+.artist-secondary-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.artist-secondary-btn {
+    border: 1px solid rgba(188, 19, 254, 0.44);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.artist-secondary-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(188, 19, 254, 0.82);
+    background: rgba(188, 19, 254, 0.2);
+}
+
+.artist-detail-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.artist-detail-card {
+    border-radius: 14px;
+    border: 1px solid rgba(188, 19, 254, 0.32);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 14px;
+    min-height: 220px;
+}
+
+.artist-detail-card h3 {
+    margin: 0 0 12px;
+    color: #ffffff;
+    font-size: 1.05rem;
+}
+
+.artist-list,
+.artist-top-list {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.9rem;
+}
+
+.artist-top-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.artist-top-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1px solid rgba(188, 19, 254, 0.2);
+    padding-bottom: 7px;
+}
+
+.artist-top-list strong {
+    color: #f6deff;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.artist-top-empty {
+    color: rgba(255, 255, 255, 0.7);
+    border-bottom: none;
+}
+
+.artist-bio {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.45;
+    font-size: 0.92rem;
+}
+
+.artist-subtitle {
+    margin: 14px 0 8px;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.artist-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.artist-genre-chip {
+    border-radius: 999px;
+    border: 1px solid rgba(188, 19, 254, 0.52);
+    background: rgba(188, 19, 254, 0.18);
+    color: #f6deff;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+}
+
+/* ========================================
    GLOBAL PLAYER BAR
    ======================================== */
 .global-player-bar {
@@ -2203,7 +2403,7 @@ body.perfil-page .perfil-settings-panel {
     backdrop-filter: blur(14px);
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.42), 0 0 18px rgba(188, 19, 254, 0.2);
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 16px;
     padding: 10px 12px;
@@ -2217,6 +2417,7 @@ body.perfil-page .perfil-settings-panel {
     display: flex;
     align-items: center;
     gap: 8px;
+    justify-self: start;
 }
 
 .player-control-btn,
@@ -2257,10 +2458,12 @@ body.perfil-page .perfil-settings-panel {
     min-width: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
 }
 
 .player-cover {
+    position: relative;
     width: 44px;
     height: 44px;
     border-radius: 10px;
@@ -2271,10 +2474,27 @@ body.perfil-page .perfil-settings-panel {
     justify-content: center;
     font-weight: 700;
     color: #f5e3ff;
+    overflow: hidden;
+}
+
+.player-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.player-cover-fallback {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .player-meta {
     min-width: 0;
+    text-align: center;
 }
 
 .player-song {
@@ -2299,6 +2519,7 @@ body.perfil-page .perfil-settings-panel {
     display: flex;
     align-items: center;
     gap: 8px;
+    justify-self: end;
 }
 
 .player-action-btn.active {
@@ -2403,6 +2624,23 @@ body.perfil-page .perfil-settings-panel {
         grid-template-columns: 1fr;
     }
 
+    .artist-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .artist-image-shell {
+        max-width: 240px;
+        margin: 0 auto;
+    }
+
+    .artist-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .artist-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
     .global-player-bar {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -2415,6 +2653,22 @@ body.perfil-page .perfil-settings-panel {
     }
 
     .player-track-info {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 560px) {
+    .artist-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .artist-actions {
+        flex-direction: column;
+    }
+
+    .artist-action-btn,
+    .artist-secondary-btn {
+        width: 100%;
         justify-content: center;
     }
 }

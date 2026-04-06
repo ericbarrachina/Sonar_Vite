@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Artista</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+	<link rel="stylesheet" href="./src/styles/style.css">
+</head>
+<body class="home-page artist-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/home.html" class="home-logo-link">
+					<img src="/Sonar/public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal">
+				<a href="/home.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Inicio
+				</a>
+				<a href="/save.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Guardados
+				</a>
+				<a href="/playlist.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Playlists
+				</a>
+				<a href="/buscar.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Explorar
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1 id="artistHeaderTitle">Artista</h1>
+					<p class="home-welcome-subtitle" id="artistHeaderSubtitle">Conoce mas sobre este artista en Sonar.</p>
+				</div>
+				<div class="home-header-actions" aria-label="Accesos rapidos">
+					<a href="/home.html" class="home-settings-btn home-btn" aria-label="Volver a Home">
+						<i class="fa-solid fa-house home-btn-icon" aria-hidden="true"></i>
+					</a>
+					<a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+				</div>
+			</header>
+
+			<section class="home-canciones-panel artist-profile-panel" aria-label="Perfil del artista">
+				<p id="artistEmptyState" class="buscar-empty" hidden>No encontramos canciones de este artista en el catalogo actual.</p>
+
+				<div class="artist-hero" id="artistHero">
+					<div class="artist-image-shell">
+						<img src="" alt="Imagen del artista" id="artistImage" class="artist-image">
+					</div>
+					<div class="artist-hero-content">
+						<h2 class="artist-name" id="artistName">Artista</h2>
+						<p class="artist-tagline" id="artistTagline">Pop moderno</p>
+
+						<div class="artist-stats-grid" aria-label="Datos del artista">
+							<article class="artist-stat-card">
+								<span>Inicio</span>
+								<strong id="artistStartYear">N/D</strong>
+							</article>
+							<article class="artist-stat-card">
+								<span>Visualizaciones</span>
+								<strong id="artistViews">0</strong>
+							</article>
+							<article class="artist-stat-card">
+								<span>Albumes</span>
+								<strong id="artistAlbumCount">0</strong>
+							</article>
+							<article class="artist-stat-card">
+								<span>Oyentes mensuales</span>
+								<strong id="artistMonthlyListeners">0</strong>
+							</article>
+							<article class="artist-stat-card">
+								<span>Años activos</span>
+								<strong id="artistYearsActive">N/D</strong>
+							</article>
+							<article class="artist-stat-card">
+								<span>Duracion media</span>
+								<strong id="artistAvgDuration">N/D</strong>
+							</article>
+						</div>
+
+						<div class="artist-actions" aria-label="Acciones del artista">
+							<button type="button" id="artistPlayBtn" class="btn-nav artist-action-btn">
+								<i class="fa-solid fa-play" aria-hidden="true"></i>
+								<span>Reproducir artista</span>
+							</button>
+							<button type="button" id="artistShuffleBtn" class="artist-secondary-btn artist-action-btn">
+								<i class="fa-solid fa-shuffle" aria-hidden="true"></i>
+								<span>Modo shuffle</span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="artist-detail-grid" id="artistDetailGrid">
+					<article class="artist-detail-card">
+						<h3>Albumes</h3>
+						<ul id="artistAlbumsList" class="artist-list"></ul>
+					</article>
+
+					<article class="artist-detail-card">
+						<h3>Top canciones</h3>
+						<ol id="artistTopSongsList" class="artist-top-list"></ol>
+					</article>
+
+					<article class="artist-detail-card">
+						<h3>Sobre el artista</h3>
+						<p id="artistBio" class="artist-bio">Aqui aparecera una descripcion del artista.</p>
+						<h4 class="artist-subtitle">Generos</h4>
+						<div id="artistGenres" class="artist-genres"></div>
+					</article>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="./src/main.js"></script>
+</body>
+</html>
