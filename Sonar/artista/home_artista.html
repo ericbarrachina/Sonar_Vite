@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonar - Home Artista</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body class="home-page home-artista-page">
+    <button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+        <span></span><span></span><span></span>
+    </button>
+
+    <div class="home-layout">
+        <aside class="home-sidebar" id="homeSidebar">
+            <div class="home-sidebar-header">
+                <a href="/artista/home_artista.html" class="home-logo-link">
+                    <img src="/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+                </a>
+            </div>
+
+            <nav class="home-nav" aria-label="Menu principal artista">
+                <a href="/artista/home_artista.html" class="home-nav-item active" aria-current="page">
+                    <span class="home-nav-icon"></span>
+                    Inicio
+                </a>
+                <a href="/artista/album_artista.html" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Crear Album
+                </a>
+                <a href="/artista/cancion_artista.html" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Crear Cancion
+                </a>
+            </nav>
+
+            <button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+        </aside>
+
+        <main class="home-main-content">
+            <header class="home-main-header">
+                <div class="home-header-text">
+                    <h1 id="saludoUsuario">Hola, artista!</h1>
+                    <p class="home-welcome-subtitle">Gestiona tu catalogo y comparte tu sonido con Sonar.</p>
+                </div>
+                <a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+            </header>
+
+            <section class="home-canciones-panel" aria-label="Panel de canciones del artista">
+                <div class="home-panel-head">
+                    <h2>Tus canciones</h2>
+                    <span class="home-badge">Catalogo del artista</span>
+                </div>
+
+                <p id="artistSongsEmpty" class="buscar-empty">Aun no tienes canciones publicadas.</p>
+                <div class="hero-buttons" id="artistAddSongWrap" style="justify-content: flex-start; margin-top: 16px;">
+                    <a href="/artista/cancion_artista.html" class="btn-primary">Anadir canciones</a>
+                </div>
+
+                <div id="artistSongsWrap" style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; margin-top: 16px;" hidden>
+                    <div class="home-canciones-grid" id="artistSongsGrid"></div>
+                    <aside class="playlist-card" aria-label="Ranking por visualizaciones">
+                        <h3 style="margin-bottom: 8px;">Ranking por views</h3>
+                        <ol id="artistViewsRanking" class="artist-top-list" style="margin: 0; padding: 0; list-style: none;"></ol>
+                    </aside>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+/* Eric Meyer’s Reset CSS v2.0 | 20110126 */
+/* Aquest fitxer posa a zero marges, padding, bordes, i altres estils per defecte */
+/* Així s'eviten els estils inconsistents entre navegadors i es comença amb una base neta */
+/* Public Domain - És lliure per utilitzar en qualsevol projecte */
+
+/* Selecciona pràcticament tots els elements HTML i els posa a zero marges, padding i bordes */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;        /* Elimina marges per defecte */
+  padding: 0;       /* Elimina acolorits (padding) */
+  border: 0;        /* Elimina bordes */
+  font-size: 100%;  /* Usa la mida de font heretada del browser (normalitzat) */
+  font: inherit;    /* Hereta font, estil i pes del pare */
+  vertical-align: baseline; /* Alinia verticalment elements en línia a la base */
+}
+
+/* Per donar suport a HTML5 en navegadors antics */
+/* Defineix elements HTML5 com "block" per garantir que es mostrin correctament */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+/* Defineix línia base per al cos de la pàgina */
+body {
+  line-height: 1;  /* Normalitza la separació vertical */
+}
+
+/* Elimina estils de llistes */
+ol, ul {
+  list-style: none;
+}
+
+/* Normalitza enllaços: evita subratllat per defecte */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Evita que les cites (blockquote, q) mostrin cometes per defecte */
+blockquote, q {
+  quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+
+/* Normalitza taules, elimina espais i bordes */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}   

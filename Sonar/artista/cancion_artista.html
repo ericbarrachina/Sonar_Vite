@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Crear Cancion</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body class="home-page artist-song-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/artista/home_artista.html" class="home-logo-link">
+					<img src="/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal artista">
+				<a href="/artista/home_artista.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Inicio
+				</a>
+				<a href="/artista/album_artista.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Crear Album
+				</a>
+				<a href="/artista/cancion_artista.html" class="home-nav-item active" aria-current="page">
+					<span class="home-nav-icon"></span>
+					Crear Cancion
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1>Gestion de canciones</h1>
+					<p class="home-welcome-subtitle">Crea canciones nuevas y revisa tu listado actual.</p>
+				</div>
+				<a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+			</header>
+
+			<section class="home-canciones-panel" aria-label="Listado de canciones del artista">
+				<div class="home-panel-head">
+					<h2>Listado de canciones</h2>
+					<span class="home-badge" id="artistSongCountBadge">0 canciones</span>
+				</div>
+
+				<div class="hero-buttons" style="justify-content: flex-start; margin-top: 0; margin-bottom: 12px;">
+					<button type="button" class="btn-primary" id="artistShowFormBtn">Anadir canciones</button>
+				</div>
+
+				<div id="artistSongFormSection" hidden>
+					<form id="artistSongForm" class="login-form" autocomplete="off">
+						<div class="form-group">
+							<label for="songName">Nombre</label>
+							<input type="text" id="songName" required placeholder="Nombre de la cancion">
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="songDuration">Duracion (segundos)</label>
+								<input type="number" id="songDuration" min="1" step="1" placeholder="210">
+							</div>
+							<div class="form-group">
+								<label for="songGenero">ID genero</label>
+								<input type="number" id="songGenero" min="1" step="1" placeholder="1">
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="songImagen">Imagen (URL)</label>
+								<input type="url" id="songImagen" placeholder="https://...">
+							</div>
+							<div class="form-group">
+								<label for="songViews">Views iniciales</label>
+								<input type="number" id="songViews" min="0" step="1" value="0">
+							</div>
+						</div>
+						<button type="submit" class="btn-primary login-submit-btn">Crear cancion</button>
+					</form>
+					<p id="artistSongFormFeedback" class="register-link" style="text-align: left; margin-top: 12px;"></p>
+				</div>
+
+				<p id="artistSongListEmpty" class="buscar-empty">Aun no has creado canciones.</p>
+
+				<div class="home-canciones-grid" id="artistSongListGrid" hidden></div>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="/src/main.js"></script>
+</body>
+</html>

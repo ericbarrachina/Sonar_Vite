@@ -77,6 +77,14 @@ const ARTIST_PROFILE_CATALOG = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    const body = document.body;
+    const isLoginPage = body.classList.contains('login-page');
+    const isRegisterPage = body.classList.contains('register-page');
+    const isArtistHomePage = body.classList.contains('home-artista-page');
+    const isArtistSongPage = body.classList.contains('artist-song-page');
+    const isHomePage = body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage && !body.classList.contains('save-page') && !body.classList.contains('playlist-page') && !body.classList.contains('perfil-page') && !body.classList.contains('buscar-page') && !body.classList.contains('artist-page');
+    const isSongLibraryPage = (body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage) || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('buscar-page') || body.classList.contains('artist-page');
+
     // 1. Inicialización de UI y Animaciones
     initTheme();
     initParticles();
@@ -92,6 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         registroForm.addEventListener('submit', handleRegistro);
     }
 
+    const registroArtistaForm = document.getElementById('registroArtistaForm');
+    if (registroArtistaForm) {
+        registroArtistaForm.addEventListener('submit', handleRegistroArtista);
+    }
+
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
@@ -103,30 +116,43 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', logout);
     }
 
-    // 5. Interacciones exclusivas de la Home
-    initHomeInteractions();
+    if (isHomePage || isArtistHomePage || isArtistSongPage || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('perfil-page')) {
+        initHomeInteractions();
+    }
 
-    // 6. Interacciones de busqueda (pagina Explorar)
-    initBuscarInteractions();
+    if (body.classList.contains('buscar-page')) {
+        initBuscarInteractions();
+    }
 
-    // 6.1 Vista de artista
-    initArtistPage();
+    if (body.classList.contains('artist-page')) {
+        initArtistPage();
+    }
 
-    // 7. Guardar canciones en playlists desde las tarjetas
-    initPlaylistQuickSave();
+    if (isSongLibraryPage) {
+        initPlaylistQuickSave();
+        initSongCardVisuals();
+        initSongCardPlayback();
+    }
 
-    // 8. Vista de playlists
-    initPlaylistPage();
+    if (body.classList.contains('playlist-page')) {
+        initPlaylistPage();
+    }
 
-    // 9. Vista de guardados
-    initSavedSongsPage();
+    if (body.classList.contains('save-page')) {
+        initSavedSongsPage();
+    }
 
-    // 10. Mejora visual de tarjetas (portada + link artista)
-    initSongCardVisuals();
+    if (isArtistHomePage) {
+        initArtistHomeSongs();
+    }
 
-    // 11. Barra de reproduccion global
-    initGlobalPlayerBar();
-    initSongCardPlayback();
+    if (isArtistSongPage) {
+        initArtistSongPage();
+    }
+
+    if (isSongLibraryPage && !isLoginPage && !isRegisterPage) {
+        initGlobalPlayerBar();
+    }
 });
 
 // ========================================
@@ -138,19 +164,27 @@ function checkSession() {
     const token = localStorage.getItem('sonar_token');
     const path = window.location.pathname;
 
-    // Si intenta entrar a home sin token, fuera
-    if (path.includes('home.html') && !token) {
+    // Si intenta entrar a una home sin token, fuera
+    if ((path.includes('home.html') || path.includes('home_artista.html')) && !token) {
         alert("Sessió no vàlida. Si us plau, identifica't.");
         window.location.href = 'index.html';
     }
 
     // Si ya tiene token e intenta ir al login/registro, lo mandamos a la home
-    if ((path.includes('index.html') || path.includes('registro.html')) && token) {
-        window.location.href = 'home.html';
+    if (
+        (
+            path.includes('index.html') ||
+            path.includes('login.html') ||
+            path.includes('registro.html') ||
+            path.includes('registro_usuario.html') ||
+            path.includes('registro_artista.html')
+        ) && token
+    ) {
+        window.location.href = resolveAuthRedirect({}, '/home.html');
     }
 
-    // Si estamos en la home y hay usuario, pintamos el nombre
-    if (path.includes('home.html') && token) {
+    // Si estamos en alguna home y hay usuario, pintamos el nombre
+    if ((path.includes('home.html') || path.includes('home_artista.html')) && token) {
         const nombre = localStorage.getItem('userName') || 'usuario';
         const saludo = document.getElementById('saludoUsuario');
         if (saludo) saludo.textContent = `Hola, ${nombre}!`;
@@ -162,6 +196,40 @@ function logout() {
     localStorage.removeItem('userName');
     localStorage.removeItem('userAlias');
     window.location.href = 'index.html';
+}
+
+function storeAuthSession(data) {
+    if (!data) return;
+
+    if (data.token) {
+        localStorage.setItem('sonar_token', data.token);
+        localStorage.setItem('token', data.token);
+    }
+
+    if (data.user?.nom) {
+        localStorage.setItem('userName', data.user.nom);
+    }
+
+    if (data.user?.alias) {
+        localStorage.setItem('userAlias', data.user.alias);
+    }
+
+    if (data.user?.tipus) {
+        localStorage.setItem('userType', data.user.tipus);
+    }
+}
+
+function resolveAuthRedirect(data, fallbackPath = '/home.html') {
+    if (typeof data?.redirect === 'string' && data.redirect.trim()) {
+        return data.redirect;
+    }
+
+    const userType = data?.user?.tipus || localStorage.getItem('userType');
+    if (userType === 'artista') {
+        return '/artista/home_artista.html';
+    }
+
+    return fallbackPath;
 }
 
 // ========================================
@@ -186,17 +254,88 @@ async function handleRegistro(e) {
             body: JSON.stringify(dadesUsuari)
         });
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
 
         if (response.ok) {
+            if (data.token || data.user) {
+                storeAuthSession(data);
+                window.location.replace(resolveAuthRedirect(data, '/home.html'));
+                return;
+            }
+
+            const loginResponse = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correu: dadesUsuari.correu, contrasenya: dadesUsuari.contrasenya })
+            });
+
+            const loginData = await loginResponse.json().catch(() => ({}));
+
+            if (loginResponse.ok) {
+                storeAuthSession(loginData);
+                window.location.replace(resolveAuthRedirect(loginData, '/home.html'));
+                return;
+            }
+
             alert("✅ ¡Cuenta creada con éxito! Ya puedes iniciar sesión.");
-            window.location.href = 'index.html'; 
+            window.location.replace('/login.html?registro=ok');
         } else {
             alert("❌ Error: " + data.message);
         }
     } catch (error) {
         console.error("Error en el registro:", error);
         alert("No se pudo conectar con el servidor de Sonar.");
+    }
+}
+
+async function handleRegistroArtista(e) {
+    e.preventDefault();
+
+    const artistaData = {
+        nom: document.getElementById('artistaNombre').value,
+        correu: document.getElementById('artistaEmail').value,
+        contrasenya: document.getElementById('artistaPassword').value,
+        imatge_perfil: document.getElementById('artistaImagen').value
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/registre-artista`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(artistaData)
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+            if (data.token || data.user) {
+                storeAuthSession(data);
+                window.location.replace(resolveAuthRedirect(data, '/home_artista.html'));
+                return;
+            }
+
+            const loginResponse = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correu: artistaData.correu, contrasenya: artistaData.contrasenya })
+            });
+
+            const loginData = await loginResponse.json().catch(() => ({}));
+
+            if (loginResponse.ok) {
+                storeAuthSession(loginData);
+                window.location.replace(resolveAuthRedirect(loginData, '/home_artista.html'));
+                return;
+            }
+
+            alert('✅ Cuenta de artista creada. Ahora puedes iniciar sesión.');
+            window.location.replace('/login.html?registro=ok');
+        } else {
+            alert('❌ Error: ' + (data.message || 'No se pudo crear la cuenta de artista.'));
+        }
+    } catch (error) {
+        console.error('Error en el registro de artista:', error);
+        alert('No se pudo conectar con el servidor de Sonar.');
     }
 }
 
@@ -224,15 +363,12 @@ async function handleLogin(e) {
 
         const data = await response.json();
 
-        if (response.ok) {
+        if (response.ok && data.success !== false) {
             console.log("✅ Login exitoso con JWT");
-            
-            // GUARDAMOS EL TOKEN Y DATOS
-            localStorage.setItem('sonar_token', data.token); 
-            localStorage.setItem('userName', data.user.nom);
-            localStorage.setItem('userAlias', data.user.alias);
-            
-            window.location.href = 'home.html';
+
+            storeAuthSession(data);
+
+            window.location.replace(resolveAuthRedirect(data, '/home.html'));
         } else {
             if (errorDiv) {
                 errorDiv.textContent = data.message || "Correu o contrasenya incorrectes";
@@ -329,6 +465,184 @@ function initHomeInteractions() {
             }
         });
     }
+}
+
+function getCurrentArtistId() {
+    const fromStorage = Number.parseInt(localStorage.getItem('artistId') || localStorage.getItem('userId') || '0', 10);
+    if (Number.isFinite(fromStorage) && fromStorage > 0) return fromStorage;
+
+    const alias = localStorage.getItem('userAlias') || localStorage.getItem('userName') || 'artist';
+    let hash = 0;
+    for (let i = 0; i < alias.length; i++) {
+        hash = ((hash << 5) - hash) + alias.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash) + 1;
+}
+
+function getArtistSongsStore() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem('sonar_artist_songs') || '[]');
+        if (Array.isArray(parsed)) return parsed;
+    } catch (error) {
+        console.warn('No se pudo leer el listado de canciones del artista.', error);
+    }
+    return [];
+}
+
+function saveArtistSongsStore(songs) {
+    localStorage.setItem('sonar_artist_songs', JSON.stringify(Array.isArray(songs) ? songs : []));
+}
+
+function getArtistSongs() {
+    const artistId = getCurrentArtistId();
+    return getArtistSongsStore()
+        .filter((song) => Number(song.id_artista) === artistId)
+        .map((song) => ({
+            id_canco: Number(song.id_canco) || Date.now(),
+            nom: song.nom || 'Cancion',
+            id_artista: artistId,
+            imagen: song.imagen || '',
+            duration: Number(song.duration) || 0,
+            id_genero: Number(song.id_genero) || 0,
+            views: Number(song.views || song.visualitzacions) || 0
+        }));
+}
+
+function createArtistSong(songData) {
+    const store = getArtistSongsStore();
+    const nextId = store.reduce((maxId, item) => Math.max(maxId, Number(item.id_canco) || 0), 0) + 1;
+
+    const newSong = {
+        id_canco: nextId,
+        nom: songData.nom,
+        id_artista: getCurrentArtistId(),
+        imagen: songData.imagen || '',
+        duration: Number(songData.duration) || 0,
+        id_genero: Number(songData.id_genero) || 0,
+        views: Number(songData.views) || 0
+    };
+
+    store.push(newSong);
+    saveArtistSongsStore(store);
+    return newSong;
+}
+
+function formatArtistDuration(seconds) {
+    const total = Number(seconds);
+    if (!Number.isFinite(total) || total <= 0) return 'N/D';
+    const mins = Math.floor(total / 60);
+    const secs = String(total % 60).padStart(2, '0');
+    return `${mins}:${secs}`;
+}
+
+function renderArtistSongCard(song) {
+    return `
+        <article class="song-card" data-song="${song.nom}" data-artist="${localStorage.getItem('userName') || 'Artista'}" data-cover="${song.imagen || ''}">
+            <div class="song-cover" aria-hidden="true">Portada</div>
+            <h3>${song.nom}</h3>
+            <p class="song-artist">Views: ${formatPlayCount(song.views)}</p>
+            <div class="playlist-card-meta">Duracion: ${formatArtistDuration(song.duration)} • Genero ID: ${song.id_genero || 'N/D'}</div>
+            <div class="playlist-card-preview">ID cancion: ${song.id_canco} • ID artista: ${song.id_artista}</div>
+        </article>
+    `;
+}
+
+function initArtistHomeSongs() {
+    const empty = document.getElementById('artistSongsEmpty');
+    const addWrap = document.getElementById('artistAddSongWrap');
+    const wrap = document.getElementById('artistSongsWrap');
+    const grid = document.getElementById('artistSongsGrid');
+    const ranking = document.getElementById('artistViewsRanking');
+    const rankingPanel = ranking ? ranking.closest('aside') : null;
+
+    if (!empty || !addWrap || !wrap || !grid || !ranking) return;
+
+    const songs = getArtistSongs().sort((a, b) => b.views - a.views);
+
+    if (songs.length === 0) {
+        empty.hidden = false;
+        addWrap.hidden = false;
+        wrap.hidden = true;
+        if (rankingPanel) rankingPanel.hidden = true;
+        grid.innerHTML = '';
+        ranking.innerHTML = '';
+        return;
+    }
+
+    empty.hidden = true;
+    addWrap.hidden = true;
+    wrap.hidden = false;
+    if (rankingPanel) rankingPanel.hidden = false;
+
+    grid.innerHTML = songs.map(renderArtistSongCard).join('');
+    ranking.innerHTML = songs
+        .map((song, index) => `<li><span>${index + 1}. ${song.nom}</span><strong>${formatPlayCount(song.views)}</strong></li>`)
+        .join('');
+
+    initSongCardVisuals(grid);
+}
+
+function initArtistSongPage() {
+    const formSection = document.getElementById('artistSongFormSection');
+    const form = document.getElementById('artistSongForm');
+    const feedback = document.getElementById('artistSongFormFeedback');
+    const empty = document.getElementById('artistSongListEmpty');
+    const showFormBtn = document.getElementById('artistShowFormBtn');
+    const grid = document.getElementById('artistSongListGrid');
+    const badge = document.getElementById('artistSongCountBadge');
+
+    if (!formSection || !form || !feedback || !empty || !showFormBtn || !grid || !badge) return;
+
+    const showCreateForm = () => {
+        formSection.hidden = false;
+        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const renderList = () => {
+        const songs = getArtistSongs().sort((a, b) => b.views - a.views);
+
+        badge.textContent = `${songs.length} cancion${songs.length === 1 ? '' : 'es'}`;
+
+        if (songs.length === 0) {
+            empty.hidden = false;
+            grid.hidden = true;
+            grid.innerHTML = '';
+            return;
+        }
+
+        empty.hidden = true;
+        grid.hidden = false;
+        grid.innerHTML = songs.map(renderArtistSongCard).join('');
+        initSongCardVisuals(grid);
+    };
+
+    showFormBtn.addEventListener('click', showCreateForm);
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const songData = {
+            nom: document.getElementById('songName').value.trim(),
+            duration: Number.parseInt(document.getElementById('songDuration').value || '0', 10),
+            id_genero: Number.parseInt(document.getElementById('songGenero').value || '0', 10),
+            imagen: document.getElementById('songImagen').value.trim(),
+            views: Number.parseInt(document.getElementById('songViews').value || '0', 10)
+        };
+
+        if (!songData.nom) {
+            feedback.textContent = 'El nombre de la cancion es obligatorio.';
+            return;
+        }
+
+        createArtistSong(songData);
+        feedback.textContent = 'Cancion creada correctamente.';
+        form.reset();
+        document.getElementById('songViews').value = '0';
+        renderList();
+    });
+
+    renderList();
 }
 
 function normalizeSearchText(value) {
