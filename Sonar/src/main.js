@@ -4,6 +4,7 @@
 
 const API_URL = 'http://172.20.10.3:3000';
 let isPlaylistPopoverDismissBound = false;
+let isArtistAlbumPopoverDismissBound = false;
 let globalPlayer = null;
 let songInfoModal = null;
 const globalPlayerState = {
@@ -82,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isRegisterPage = body.classList.contains('register-page');
     const isArtistHomePage = body.classList.contains('home-artista-page');
     const isArtistSongPage = body.classList.contains('artist-song-page');
+    const isArtistAlbumPage = body.classList.contains('artist-album-page');
     const isHomePage = body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage && !body.classList.contains('save-page') && !body.classList.contains('playlist-page') && !body.classList.contains('perfil-page') && !body.classList.contains('buscar-page') && !body.classList.contains('artist-page');
     const isSongLibraryPage = (body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage) || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('buscar-page') || body.classList.contains('artist-page');
 
@@ -116,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', logout);
     }
 
-    if (isHomePage || isArtistHomePage || isArtistSongPage || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('perfil-page')) {
+    if (isHomePage || isArtistHomePage || isArtistSongPage || isArtistAlbumPage || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('perfil-page')) {
         initHomeInteractions();
     }
 
@@ -148,6 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isArtistSongPage) {
         initArtistSongPage();
+    }
+
+    if (isArtistAlbumPage) {
+        initArtistAlbumPage();
     }
 
     if (isSongLibraryPage && !isLoginPage && !isRegisterPage) {
@@ -494,6 +500,117 @@ function saveArtistSongsStore(songs) {
     localStorage.setItem('sonar_artist_songs', JSON.stringify(Array.isArray(songs) ? songs : []));
 }
 
+function getArtistAlbumsStore() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem('sonar_artist_albums') || '[]');
+        if (Array.isArray(parsed)) return parsed;
+    } catch (error) {
+        console.warn('No se pudo leer el listado de albumes del artista.', error);
+    }
+    return [];
+}
+
+function saveArtistAlbumsStore(albums) {
+    localStorage.setItem('sonar_artist_albums', JSON.stringify(Array.isArray(albums) ? albums : []));
+}
+
+function getArtistAlbums() {
+    const artistId = getCurrentArtistId();
+    return getArtistAlbumsStore()
+        .filter((album) => Number(album.id_artista) === artistId)
+        .map((album) => ({
+            id_album: Number(album.id_album) || 0,
+            id_artista: artistId,
+            nom: album.nom || 'Album',
+            imagen: album.imagen || ''
+        }))
+        .filter((album) => album.id_album > 0);
+}
+
+function createArtistAlbum(albumData) {
+    const name = (albumData?.nom || '').trim();
+    if (!name) {
+        return { ok: false, reason: 'name-required' };
+    }
+
+    const artistId = getCurrentArtistId();
+    const store = getArtistAlbumsStore();
+    const exists = store.find((album) => Number(album.id_artista) === artistId && (album.nom || '').trim().toLowerCase() === name.toLowerCase());
+    if (exists) {
+        return { ok: false, reason: 'duplicate', album: exists };
+    }
+
+    const nextId = store.reduce((maxId, item) => Math.max(maxId, Number(item.id_album) || 0), 0) + 1;
+    const newAlbum = {
+        id_album: nextId,
+        id_artista: artistId,
+        nom: name,
+        imagen: (albumData?.imagen || '').trim()
+    };
+
+    store.push(newAlbum);
+    saveArtistAlbumsStore(store);
+    return { ok: true, album: newAlbum };
+}
+
+function getArtistAlbumSongsStore() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem('sonar_artist_album_songs') || '{}');
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch (error) {
+        console.warn('No se pudo leer la relacion album-cancion.', error);
+    }
+    return {};
+}
+
+function saveArtistAlbumSongsStore(map) {
+    const safeMap = map && typeof map === 'object' ? map : {};
+    localStorage.setItem('sonar_artist_album_songs', JSON.stringify(safeMap));
+}
+
+function getArtistAlbumSongIds(albumId) {
+    const store = getArtistAlbumSongsStore();
+    const key = String(albumId);
+    const ids = Array.isArray(store[key]) ? store[key] : [];
+    return ids.map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0);
+}
+
+function getArtistAlbumSongs(albumId) {
+    const idSet = new Set(getArtistAlbumSongIds(albumId));
+    return getArtistSongs().filter((song) => idSet.has(Number(song.id_canco)));
+}
+
+function addSongToArtistAlbum(albumId, songId) {
+    const safeAlbumId = Number(albumId);
+    const safeSongId = Number(songId);
+    if (!Number.isFinite(safeAlbumId) || !Number.isFinite(safeSongId)) {
+        return { ok: false, reason: 'invalid-data' };
+    }
+
+    const albumExists = getArtistAlbums().some((album) => Number(album.id_album) === safeAlbumId);
+    if (!albumExists) {
+        return { ok: false, reason: 'album-not-found' };
+    }
+
+    const songExists = getArtistSongs().some((song) => Number(song.id_canco) === safeSongId);
+    if (!songExists) {
+        return { ok: false, reason: 'song-not-found' };
+    }
+
+    const store = getArtistAlbumSongsStore();
+    const key = String(safeAlbumId);
+    const ids = Array.isArray(store[key]) ? store[key].map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0) : [];
+
+    if (ids.includes(safeSongId)) {
+        return { ok: false, reason: 'duplicate' };
+    }
+
+    ids.push(safeSongId);
+    store[key] = ids;
+    saveArtistAlbumSongsStore(store);
+    return { ok: true };
+}
+
 function getArtistSongs() {
     const artistId = getCurrentArtistId();
     return getArtistSongsStore()
@@ -538,12 +655,15 @@ function formatArtistDuration(seconds) {
 
 function renderArtistSongCard(song) {
     return `
-        <article class="song-card" data-song="${song.nom}" data-artist="${localStorage.getItem('userName') || 'Artista'}" data-cover="${song.imagen || ''}">
+        <article class="song-card" data-song-id="${song.id_canco}" data-song="${song.nom}" data-artist="${localStorage.getItem('userName') || 'Artista'}" data-cover="${song.imagen || ''}">
             <div class="song-cover" aria-hidden="true">Portada</div>
             <h3>${song.nom}</h3>
             <p class="song-artist">Views: ${formatPlayCount(song.views)}</p>
             <div class="playlist-card-meta">Duracion: ${formatArtistDuration(song.duration)} • Genero ID: ${song.id_genero || 'N/D'}</div>
             <div class="playlist-card-preview">ID cancion: ${song.id_canco} • ID artista: ${song.id_artista}</div>
+            <div class="song-actions artist-song-actions" aria-label="Acciones de la cancion">
+                <button type="button" class="song-action-btn artist-song-album-btn" data-song-id="${song.id_canco}" aria-label="Anadir a album">+</button>
+            </div>
         </article>
     `;
 }
@@ -581,6 +701,247 @@ function initArtistHomeSongs() {
         .join('');
 
     initSongCardVisuals(grid);
+    initArtistSongAlbumActions(grid);
+}
+
+function createArtistAlbumPopover() {
+    let popover = document.getElementById('artistAlbumPopover');
+    if (popover) return popover;
+
+    popover = document.createElement('div');
+    popover.id = 'artistAlbumPopover';
+    popover.className = 'artist-album-popover';
+    popover.hidden = true;
+    document.body.appendChild(popover);
+    return popover;
+}
+
+function closeArtistAlbumPopover() {
+    const popover = document.getElementById('artistAlbumPopover');
+    if (!popover) return;
+    popover.hidden = true;
+}
+
+function initArtistAlbumPopoverDismiss() {
+    if (isArtistAlbumPopoverDismissBound) return;
+    isArtistAlbumPopoverDismissBound = true;
+
+    window.addEventListener('resize', () => {
+        closeArtistAlbumPopover();
+    });
+
+    document.addEventListener('click', (event) => {
+        const popover = document.getElementById('artistAlbumPopover');
+        if (!popover || popover.hidden) return;
+
+        const clickedPopover = popover.contains(event.target);
+        const clickedTrigger = event.target.closest('.artist-song-album-btn');
+        if (!clickedPopover && !clickedTrigger) {
+            closeArtistAlbumPopover();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeArtistAlbumPopover();
+        }
+    });
+}
+
+function showArtistAlbumFeedback(popover, message) {
+    const feedback = popover.querySelector('#artistAlbumPopoverFeedback');
+    if (!feedback) return;
+    feedback.textContent = message;
+}
+
+function openArtistAlbumPopover(anchorElement, songId) {
+    const popover = createArtistAlbumPopover();
+    initArtistAlbumPopoverDismiss();
+
+    const albums = getArtistAlbums();
+    popover.innerHTML = '';
+
+    const title = document.createElement('p');
+    title.className = 'artist-album-popover-title';
+    title.textContent = 'Anadir cancion a album';
+    popover.appendChild(title);
+
+    if (albums.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'artist-album-popover-empty';
+        empty.textContent = 'Primero crea un album para poder anadir canciones.';
+        popover.appendChild(empty);
+
+        const goCreate = document.createElement('a');
+        goCreate.className = 'artist-album-popover-create';
+        goCreate.href = '/artista/album_artista.html';
+        goCreate.textContent = 'Ir a crear album';
+        popover.appendChild(goCreate);
+    } else {
+        const list = document.createElement('div');
+        list.className = 'artist-album-popover-list';
+
+        albums.forEach((album) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'artist-album-popover-option';
+            option.textContent = album.nom;
+            option.addEventListener('click', () => {
+                const result = addSongToArtistAlbum(album.id_album, songId);
+                if (result.ok) {
+                    showArtistAlbumFeedback(popover, `Cancion anadida a ${album.nom}.`);
+                    setTimeout(closeArtistAlbumPopover, 650);
+                    return;
+                }
+
+                if (result.reason === 'duplicate') {
+                    showArtistAlbumFeedback(popover, 'Esta cancion ya esta en ese album.');
+                    return;
+                }
+
+                showArtistAlbumFeedback(popover, 'No se pudo anadir la cancion al album.');
+            });
+            list.appendChild(option);
+        });
+
+        popover.appendChild(list);
+
+        const feedback = document.createElement('p');
+        feedback.className = 'artist-album-popover-feedback';
+        feedback.id = 'artistAlbumPopoverFeedback';
+        popover.appendChild(feedback);
+    }
+
+    const rect = anchorElement.getBoundingClientRect();
+
+    popover.hidden = false;
+    popover.style.visibility = 'hidden';
+
+    const popoverWidth = popover.offsetWidth || 265;
+    const popoverHeight = popover.offsetHeight || 220;
+    const margin = 10;
+
+    let left = window.scrollX + rect.left - ((popoverWidth - rect.width) / 2);
+    const minLeft = window.scrollX + 8;
+    const maxLeft = window.scrollX + window.innerWidth - popoverWidth - 8;
+    left = Math.min(Math.max(left, minLeft), Math.max(minLeft, maxLeft));
+
+    let top = window.scrollY + rect.top - popoverHeight - margin;
+    const minTop = window.scrollY + 8;
+    if (top < minTop) {
+        top = window.scrollY + rect.bottom + margin;
+    }
+
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+    popover.style.visibility = 'visible';
+}
+
+function initArtistSongAlbumActions(root = document) {
+    const buttons = Array.from(root.querySelectorAll('.artist-song-album-btn'));
+    if (buttons.length === 0) return;
+
+    buttons.forEach((button) => {
+        if (button.dataset.albumBound === 'true') return;
+        button.dataset.albumBound = 'true';
+
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const songId = Number.parseInt(button.dataset.songId || '0', 10);
+            if (!Number.isFinite(songId) || songId <= 0) return;
+            openArtistAlbumPopover(button, songId);
+        });
+    });
+}
+
+function renderArtistAlbumCard(album) {
+    const songs = getArtistAlbumSongs(album.id_album);
+    const coverFromSongs = songs.find((song) => song.imagen)?.imagen || '';
+    const cover = album.imagen || coverFromSongs || `https://picsum.photos/seed/artist-album-${album.id_album}/420/420`;
+    const preview = songs.slice(0, 3).map((song) => song.nom).join(' • ');
+
+    return `
+        <article class="artist-album-card" aria-label="Album ${album.nom}">
+            <div class="artist-album-cover" aria-hidden="true">
+                <img src="${cover}" alt="Portada del album ${album.nom}">
+            </div>
+            <h3>${album.nom}</h3>
+            <p class="artist-album-meta">${songs.length} cancion${songs.length === 1 ? '' : 'es'}</p>
+            <p class="artist-album-preview">${preview || 'Aun no tiene canciones asignadas.'}</p>
+        </article>
+    `;
+}
+
+function initArtistAlbumPage() {
+    const grid = document.getElementById('artistAlbumGrid');
+    const createCard = document.getElementById('artistCreateAlbumCard');
+    const badge = document.getElementById('artistAlbumCountBadge');
+    const formSection = document.getElementById('artistAlbumFormSection');
+    const form = document.getElementById('artistAlbumForm');
+    const formFeedback = document.getElementById('artistAlbumFormFeedback');
+    const cancelBtn = document.getElementById('artistAlbumCancelBtn');
+    const empty = document.getElementById('artistAlbumEmpty');
+
+    if (!grid || !createCard || !badge || !formSection || !form || !formFeedback || !cancelBtn || !empty) return;
+
+    const showForm = () => {
+        formFeedback.textContent = '';
+        formSection.hidden = false;
+        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const hideForm = () => {
+        form.reset();
+        formFeedback.textContent = '';
+        formSection.hidden = true;
+    };
+
+    const renderAlbums = () => {
+        const existingCards = Array.from(grid.querySelectorAll('.artist-album-card'));
+        existingCards.forEach((card) => card.remove());
+
+        const albums = getArtistAlbums().sort((a, b) => Number(b.id_album) - Number(a.id_album));
+        albums.forEach((album) => {
+            createCard.insertAdjacentHTML('beforebegin', renderArtistAlbumCard(album));
+        });
+
+        badge.textContent = `${albums.length} album${albums.length === 1 ? '' : 'es'}`;
+        empty.hidden = albums.length > 0;
+    };
+
+    createCard.addEventListener('click', showForm);
+    cancelBtn.addEventListener('click', hideForm);
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const data = {
+            nom: document.getElementById('albumName')?.value?.trim() || '',
+            imagen: document.getElementById('albumImagen')?.value?.trim() || ''
+        };
+
+        const result = createArtistAlbum(data);
+        if (!result.ok) {
+            if (result.reason === 'name-required') {
+                formFeedback.textContent = 'El nombre del album es obligatorio.';
+                return;
+            }
+
+            if (result.reason === 'duplicate') {
+                formFeedback.textContent = 'Ya tienes un album con ese nombre.';
+                return;
+            }
+
+            formFeedback.textContent = 'No se pudo crear el album.';
+            return;
+        }
+
+        formFeedback.textContent = 'Album creado correctamente.';
+        hideForm();
+        renderAlbums();
+    });
+
+    renderAlbums();
 }
 
 function initArtistSongPage() {
@@ -589,14 +950,23 @@ function initArtistSongPage() {
     const feedback = document.getElementById('artistSongFormFeedback');
     const empty = document.getElementById('artistSongListEmpty');
     const showFormBtn = document.getElementById('artistShowFormBtn');
+    const cancelFormBtn = document.getElementById('artistCancelFormBtn');
     const grid = document.getElementById('artistSongListGrid');
     const badge = document.getElementById('artistSongCountBadge');
 
-    if (!formSection || !form || !feedback || !empty || !showFormBtn || !grid || !badge) return;
+    if (!formSection || !form || !feedback || !empty || !showFormBtn || !cancelFormBtn || !grid || !badge) return;
 
     const showCreateForm = () => {
+        feedback.textContent = '';
         formSection.hidden = false;
         formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const closeCreateForm = () => {
+        form.reset();
+        document.getElementById('songViews').value = '0';
+        feedback.textContent = '';
+        formSection.hidden = true;
     };
 
     const renderList = () => {
@@ -615,9 +985,11 @@ function initArtistSongPage() {
         grid.hidden = false;
         grid.innerHTML = songs.map(renderArtistSongCard).join('');
         initSongCardVisuals(grid);
+        initArtistSongAlbumActions(grid);
     };
 
     showFormBtn.addEventListener('click', showCreateForm);
+    cancelFormBtn.addEventListener('click', closeCreateForm);
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -639,6 +1011,7 @@ function initArtistSongPage() {
         feedback.textContent = 'Cancion creada correctamente.';
         form.reset();
         document.getElementById('songViews').value = '0';
+        formSection.hidden = true;
         renderList();
     });
 

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Crear Album</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="../src/styles/style.css">
+</head>
+<body class="home-page artist-album-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/artista/home_artista.html" class="home-logo-link">
+					<img src="/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal artista">
+				<a href="/artista/home_artista.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Inicio
+				</a>
+				<a href="/artista/album_artista.html" class="home-nav-item active" aria-current="page">
+					<span class="home-nav-icon"></span>
+					Crear Album
+				</a>
+				<a href="/artista/cancion_artista.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Crear Cancion
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1>Gestion de albumes</h1>
+					<p class="home-welcome-subtitle">Crea tus albumes y organiza tus canciones por proyecto.</p>
+				</div>
+				<a href="/perfil.html" class="home-settings-btn" aria-label="Ir a personalizar perfil">&#9881;</a>
+			</header>
+
+			<section class="home-canciones-panel" aria-label="Panel de albumes del artista">
+				<div class="home-panel-head">
+					<h2>Tus albumes</h2>
+					<span class="home-badge" id="artistAlbumCountBadge">0 albumes</span>
+				</div>
+
+				<p id="artistAlbumEmpty" class="buscar-empty">Aun no has creado albumes. Pulsa en la tarjeta con + para empezar.</p>
+
+				<div id="artistAlbumFormSection" hidden>
+					<form id="artistAlbumForm" class="login-form" autocomplete="off">
+						<div class="form-group">
+							<label for="albumName">Nombre del album</label>
+							<input type="text" id="albumName" required placeholder="Nombre del album">
+						</div>
+						<div class="form-group">
+							<label for="albumImagen">Foto del album (opcional)</label>
+							<input type="url" id="albumImagen" placeholder="https://...">
+						</div>
+
+						<div class="artist-song-form-actions">
+							<button type="submit" class="btn-primary">Crear album</button>
+							<button type="button" class="artist-song-cancel-btn" id="artistAlbumCancelBtn">Cancelar</button>
+						</div>
+					</form>
+					<p id="artistAlbumFormFeedback" class="register-link" style="text-align: left; margin-top: 12px;"></p>
+				</div>
+
+				<div class="artist-album-grid" id="artistAlbumGrid">
+					<button type="button" id="artistCreateAlbumCard" class="playlist-create-card" aria-label="Crear nuevo album">
+						<span class="playlist-create-plus">+</span>
+						<span class="playlist-create-text">Crear album</span>
+					</button>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="../src/main.js"></script>
+</body>
+</html>

@@ -1017,7 +1017,7 @@ body.dark-mode .form-group input {
     }
 
     .hero-title {
-        font-size: 3.2em;
+        font-size: 4em;
         letter-spacing: 6px;
     }
 
@@ -1250,6 +1250,11 @@ body.register-page .hero-title {
     margin-bottom: 0;
 }
 
+body.register-artist-page .hero-title {
+    font-size: 3.4em;
+    letter-spacing: 7px;
+}
+
 body.register-page .login-container {
     padding: 26px;
 }
@@ -1279,6 +1284,11 @@ body.register-page .login-form {
     body.register-page .hero-title {
         font-size: 2.1em;
         letter-spacing: 4px;
+    }
+
+    body.register-artist-page .hero-title {
+        font-size: 2.5em;
+        letter-spacing: 5px;
     }
 
     body.register-page .login-container {
@@ -2272,6 +2282,171 @@ body.perfil-page .perfil-settings-panel {
     gap: 10px;
 }
 
+.artist-song-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.artist-song-form-actions .btn-primary {
+    margin-top: 0;
+}
+
+.artist-song-cancel-btn {
+    border: 1px solid rgba(188, 19, 254, 0.45);
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    padding: 10px 22px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.artist-song-cancel-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(188, 19, 254, 0.8);
+    background: rgba(188, 19, 254, 0.2);
+}
+
+.artist-album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.artist-album-card {
+    border-radius: 14px;
+    border: 1px solid rgba(188, 19, 254, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    min-height: 212px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.artist-album-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(188, 19, 254, 0.55);
+    box-shadow: 0 10px 24px rgba(188, 19, 254, 0.18);
+}
+
+.artist-album-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 120px;
+    border-radius: 12px;
+    border: 1px solid rgba(188, 19, 254, 0.42);
+    overflow: hidden;
+    background: linear-gradient(145deg, rgba(188, 19, 254, 0.16), rgba(255, 255, 255, 0.04));
+}
+
+.artist-album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.artist-album-card h3 {
+    color: #fff;
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.artist-album-meta {
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 0.86rem;
+}
+
+.artist-album-preview {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin-top: auto;
+}
+
+.artist-song-actions {
+    margin-top: 4px;
+    justify-content: flex-end;
+}
+
+.artist-song-album-btn {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f3ddff;
+}
+
+.artist-album-popover {
+    position: absolute;
+    width: min(265px, 78vw);
+    background: rgba(12, 5, 26, 0.97);
+    border: 1px solid rgba(188, 19, 254, 0.42);
+    border-radius: 12px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38), 0 0 20px rgba(188, 19, 254, 0.2);
+    padding: 12px;
+    z-index: 80;
+}
+
+.artist-album-popover-title {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 10px;
+}
+
+.artist-album-popover-empty {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.88rem;
+    margin: 0 0 10px;
+}
+
+.artist-album-popover-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.artist-album-popover-option,
+.artist-album-popover-create {
+    border: 1px solid rgba(188, 19, 254, 0.38);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    text-align: left;
+    padding: 9px 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.artist-album-popover-option:hover,
+.artist-album-popover-create:hover {
+    background: rgba(188, 19, 254, 0.18);
+    border-color: rgba(188, 19, 254, 0.7);
+    transform: translateY(-1px);
+}
+
+.artist-album-popover-create {
+    width: 100%;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.artist-album-popover-feedback {
+    color: #d6b1ff;
+    font-size: 0.82rem;
+    min-height: 18px;
+    margin: 10px 0 0;
+}
+
 .artist-action-btn {
     display: inline-flex;
     align-items: center;
@@ -2670,5 +2845,11 @@ body.perfil-page .perfil-settings-panel {
     .artist-secondary-btn {
         width: 100%;
         justify-content: center;
+    }
+
+    .artist-song-form-actions .btn-primary,
+    .artist-song-cancel-btn {
+        width: 100%;
+        text-align: center;
     }
 }
