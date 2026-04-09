@@ -77,6 +77,18 @@ const ARTIST_PROFILE_CATALOG = {
     }
 };
 
+const ARTIST_GENRE_OPTIONS = [
+    { id: 1, name: 'Pop' },
+    { id: 2, name: 'Synth Pop' },
+    { id: 3, name: 'Electropop' },
+    { id: 4, name: 'Electronic' },
+    { id: 5, name: 'Indie Pop' },
+    { id: 6, name: 'Alternative Pop' },
+    { id: 7, name: 'Synthwave' },
+    { id: 8, name: 'Retrowave' },
+    { id: 9, name: 'Dream Pop' }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
     const isLoginPage = body.classList.contains('login-page');
@@ -95,6 +107,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 2. Verificación de Seguridad (Protección de rutas)
     checkSession();
+
+    // 2.5. Scroll Indicator
+    const scrollIndicator = document.getElementById('scrollIndicator');
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', () => {
+            const caracteristicas = document.getElementById('caracteristicas');
+            if (caracteristicas) {
+                caracteristicas.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
 
     // 3. Listeners de Formularios
     const registroForm = document.getElementById('registroForm');
@@ -395,9 +418,33 @@ async function handleLogin(e) {
 // ========================================
 function initTheme() {
     const body = document.body;
-    if (localStorage.getItem('theme') === 'dark') {
-        body.classList.add('dark-mode');
-    }
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const SUN_ICON = 'https://cdn-icons-png.flaticon.com/128/869/869869.png';
+    const MOON_ICON = 'https://cdn-icons-png.flaticon.com/128/581/581601.png';
+
+    const applyTheme = (theme) => {
+        const isDark = theme === 'dark';
+        body.classList.toggle('dark-mode', isDark);
+
+        if (themeIcon) {
+            // Sol en modo oscuro para volver a claro, luna en modo claro para pasar a oscuro.
+            themeIcon.src = isDark ? SUN_ICON : MOON_ICON;
+            themeIcon.alt = isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro';
+            themeIcon.title = isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro';
+        }
+    };
+
+    const storedTheme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+    applyTheme(storedTheme);
+
+    if (!themeToggle) return;
+
+    themeToggle.addEventListener('click', () => {
+        const nextTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+        localStorage.setItem('theme', nextTheme);
+        applyTheme(nextTheme);
+    });
 }
 
 function initParticles() {
@@ -611,6 +658,75 @@ function addSongToArtistAlbum(albumId, songId) {
     return { ok: true };
 }
 
+function getArtistGenreName(genreId) {
+    const safeId = Number(genreId);
+    const genre = ARTIST_GENRE_OPTIONS.find((item) => item.id === safeId);
+    return genre ? genre.name : 'N/D';
+}
+
+function fillArtistGenreSelect(selectElement) {
+    if (!selectElement) return;
+
+    const currentValue = selectElement.value;
+    const options = ['<option value="">Selecciona un genero</option>'];
+    ARTIST_GENRE_OPTIONS.forEach((genre) => {
+        options.push(`<option value="${genre.id}">${genre.name}</option>`);
+    });
+
+    selectElement.innerHTML = options.join('');
+    if (currentValue) {
+        selectElement.value = currentValue;
+    }
+}
+
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        if (!file) {
+            resolve('');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+        reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function getAuthToken() {
+    return localStorage.getItem('token') || localStorage.getItem('sonar_token') || '';
+}
+
+async function uploadArtistSongToApi({ nom, genereNom, audioFile, imageFile }) {
+    const token = getAuthToken();
+    if (!token) {
+        throw new Error('No hay sesion activa. Inicia sesion de nuevo.');
+    }
+
+    const formData = new FormData();
+    formData.append('nom', nom);
+    formData.append('genere_nom', genereNom);
+    formData.append('arxiu_bin', audioFile);
+    formData.append('imatge_bin', imageFile);
+
+    const response = await fetch(`${API_URL}/pujar-canco`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        body: formData
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.success === false) {
+        const message = data.message || 'No se pudo subir la cancion al servidor.';
+        throw new Error(message);
+    }
+
+    return data;
+}
+
 function getArtistSongs() {
     const artistId = getCurrentArtistId();
     return getArtistSongsStore()
@@ -620,8 +736,11 @@ function getArtistSongs() {
             nom: song.nom || 'Cancion',
             id_artista: artistId,
             imagen: song.imagen || '',
+            audio_src: song.audio_src || '',
+            audio_name: song.audio_name || '',
             duration: Number(song.duration) || 0,
-            id_genero: Number(song.id_genero) || 0,
+            id_genere: Number(song.id_genere) || 0,
+            genre_name: song.genre_name || getArtistGenreName(song.id_genere),
             views: Number(song.views || song.visualitzacions) || 0
         }));
 }
@@ -629,14 +748,18 @@ function getArtistSongs() {
 function createArtistSong(songData) {
     const store = getArtistSongsStore();
     const nextId = store.reduce((maxId, item) => Math.max(maxId, Number(item.id_canco) || 0), 0) + 1;
+    const songId = Number(songData.id_canco) || nextId;
 
     const newSong = {
-        id_canco: nextId,
+        id_canco: songId,
         nom: songData.nom,
         id_artista: getCurrentArtistId(),
         imagen: songData.imagen || '',
+        audio_src: songData.audio_src || '',
+        audio_name: songData.audio_name || '',
         duration: Number(songData.duration) || 0,
-        id_genero: Number(songData.id_genero) || 0,
+        id_genere: Number(songData.id_genere) || 0,
+        genre_name: songData.genre_name || getArtistGenreName(songData.id_genere),
         views: Number(songData.views) || 0
     };
 
@@ -659,8 +782,8 @@ function renderArtistSongCard(song) {
             <div class="song-cover" aria-hidden="true">Portada</div>
             <h3>${song.nom}</h3>
             <p class="song-artist">Views: ${formatPlayCount(song.views)}</p>
-            <div class="playlist-card-meta">Duracion: ${formatArtistDuration(song.duration)} • Genero ID: ${song.id_genero || 'N/D'}</div>
-            <div class="playlist-card-preview">ID cancion: ${song.id_canco} • ID artista: ${song.id_artista}</div>
+            <div class="playlist-card-meta">Duracion: ${formatArtistDuration(song.duration)} • Genero: ${song.genre_name || getArtistGenreName(song.id_genere)}</div>
+            <div class="playlist-card-preview">MP3: ${song.audio_name || 'Sin archivo'} • ID cancion: ${song.id_canco}</div>
             <div class="song-actions artist-song-actions" aria-label="Acciones de la cancion">
                 <button type="button" class="song-action-btn artist-song-album-btn" data-song-id="${song.id_canco}" aria-label="Anadir a album">+</button>
             </div>
@@ -953,8 +1076,13 @@ function initArtistSongPage() {
     const cancelFormBtn = document.getElementById('artistCancelFormBtn');
     const grid = document.getElementById('artistSongListGrid');
     const badge = document.getElementById('artistSongCountBadge');
+    const genreSelect = document.getElementById('songGenero');
+    const imageInput = document.getElementById('songImagen');
+    const audioInput = document.getElementById('songAudio');
 
-    if (!formSection || !form || !feedback || !empty || !showFormBtn || !cancelFormBtn || !grid || !badge) return;
+    if (!formSection || !form || !feedback || !empty || !showFormBtn || !cancelFormBtn || !grid || !badge || !genreSelect || !imageInput || !audioInput) return;
+
+    fillArtistGenreSelect(genreSelect);
 
     const showCreateForm = () => {
         feedback.textContent = '';
@@ -964,7 +1092,7 @@ function initArtistSongPage() {
 
     const closeCreateForm = () => {
         form.reset();
-        document.getElementById('songViews').value = '0';
+        fillArtistGenreSelect(genreSelect);
         feedback.textContent = '';
         formSection.hidden = true;
     };
@@ -991,28 +1119,75 @@ function initArtistSongPage() {
     showFormBtn.addEventListener('click', showCreateForm);
     cancelFormBtn.addEventListener('click', closeCreateForm);
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const songData = {
-            nom: document.getElementById('songName').value.trim(),
-            duration: Number.parseInt(document.getElementById('songDuration').value || '0', 10),
-            id_genero: Number.parseInt(document.getElementById('songGenero').value || '0', 10),
-            imagen: document.getElementById('songImagen').value.trim(),
-            views: Number.parseInt(document.getElementById('songViews').value || '0', 10)
-        };
+        const imageFile = imageInput.files && imageInput.files[0] ? imageInput.files[0] : null;
+        const audioFile = audioInput.files && audioInput.files[0] ? audioInput.files[0] : null;
+        const genreId = Number.parseInt(genreSelect.value || '0', 10);
 
-        if (!songData.nom) {
+        if (!Number.isFinite(genreId) || genreId <= 0) {
+            feedback.textContent = 'Debes seleccionar un genero valido.';
+            return;
+        }
+
+        if (!imageFile) {
+            feedback.textContent = 'Debes anadir una imagen desde tu equipo.';
+            return;
+        }
+
+        if (!audioFile) {
+            feedback.textContent = 'Debes anadir un archivo MP3 desde tu equipo.';
+            return;
+        }
+
+        if (audioFile.type && audioFile.type !== 'audio/mpeg') {
+            feedback.textContent = 'El archivo de audio debe ser MP3.';
+            return;
+        }
+
+        const songName = document.getElementById('songName').value.trim();
+        if (!songName) {
             feedback.textContent = 'El nombre de la cancion es obligatorio.';
             return;
         }
 
-        createArtistSong(songData);
-        feedback.textContent = 'Cancion creada correctamente.';
-        form.reset();
-        document.getElementById('songViews').value = '0';
-        formSection.hidden = true;
-        renderList();
+        const genreName = getArtistGenreName(genreId);
+
+        feedback.textContent = 'Subiendo cancion...';
+
+        try {
+            const uploadResult = await uploadArtistSongToApi({
+                nom: songName,
+                genereNom: genreName,
+                audioFile,
+                imageFile
+            });
+
+            const imageDataURL = await readFileAsDataURL(imageFile);
+
+            const songData = {
+                id_canco: Number(uploadResult.id_canco) || undefined,
+                nom: songName,
+                duration: 0,
+                id_genere: genreId,
+                genre_name: genreName,
+                imagen: imageDataURL,
+                audio_src: '',
+                audio_name: audioFile.name || '',
+                views: 0
+            };
+
+            createArtistSong(songData);
+            feedback.textContent = uploadResult.message || 'Cancion creada correctamente.';
+            form.reset();
+            fillArtistGenreSelect(genreSelect);
+            formSection.hidden = true;
+            renderList();
+        } catch (error) {
+            console.error('Error al subir la cancion del artista:', error);
+            feedback.textContent = error.message || 'No se pudo subir la cancion al servidor.';
+        }
     });
 
     renderList();

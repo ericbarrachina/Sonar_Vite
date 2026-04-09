@@ -62,28 +62,22 @@
 				<div id="artistSongFormSection" hidden>
 					<form id="artistSongForm" class="login-form" autocomplete="off">
 						<div class="form-group">
-							<label for="songName">Nombre</label>
+							<label for="songName">Nombre cancion</label>
 							<input type="text" id="songName" required placeholder="Nombre de la cancion">
 						</div>
-						<div class="form-row">
-							<div class="form-group">
-								<label for="songDuration">Duracion (segundos)</label>
-								<input type="number" id="songDuration" min="1" step="1" placeholder="210">
-							</div>
-							<div class="form-group">
-								<label for="songGenero">ID genero</label>
-								<input type="number" id="songGenero" min="1" step="1" placeholder="1">
-							</div>
+						<div class="form-group">
+							<label for="songGenero">Genero</label>
+							<select id="songGenero" required>
+								<option value="">Selecciona un genero</option>
+							</select>
 						</div>
-						<div class="form-row">
-							<div class="form-group">
-								<label for="songImagen">Imagen (URL)</label>
-								<input type="url" id="songImagen" placeholder="https://...">
-							</div>
-							<div class="form-group">
-								<label for="songViews">Views iniciales</label>
-								<input type="number" id="songViews" min="0" step="1" value="0">
-							</div>
+						<div class="form-group">
+							<label for="songImagen">Imagen (desde tu equipo)</label>
+							<input type="file" id="songImagen" accept="image/*" required>
+						</div>
+						<div class="form-group">
+							<label for="songAudio">Archivo MP3 (desde tu equipo)</label>
+							<input type="file" id="songAudio" accept="audio/mpeg,.mp3" required>
 						</div>
 						<div class="artist-song-form-actions">
 							<button type="submit" class="btn-primary">Crear cancion</button>
