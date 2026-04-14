@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonar - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../src/styles/style.css">
+</head>
+<body class="admin-page">
+    <button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+        <span></span><span></span><span></span>
+    </button>
+
+    <div class="home-layout">
+        <aside class="home-sidebar" id="homeSidebar">
+            <div class="home-sidebar-header">
+                <a href="/home.html" class="home-logo-link">
+                    <img src="../public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+                </a>
+            </div>
+
+            <nav class="home-nav" aria-label="Menu principal admin">
+                <a href="/admin/admin_site.html" class="home-nav-item active" aria-current="page">
+                    <span class="home-nav-icon"></span>
+                    Dashboard
+                </a>
+                <a href="/home.html" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Vista usuario
+                </a>
+                <a href="/artista/home_artista.html" class="home-nav-item">
+                    <span class="home-nav-icon"></span>
+                    Vista artista
+                </a>
+            </nav>
+
+            <button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+        </aside>
+
+        <main class="home-main-content">
+            <header class="home-main-header">
+                <div class="home-header-text">
+                    <h1>Panel de administracion</h1>
+                    <p class="home-welcome-subtitle">Consulta indicadores clave de la plataforma Sonar.</p>
+                </div>
+                <a href="/home.html" class="home-settings-btn" aria-label="Volver a Home">&#8592;</a>
+            </header>
+
+            <section class="home-canciones-panel admin-overview-panel" aria-label="Estadisticas generales">
+                <div class="home-panel-head">
+                    <h2>Resumen global</h2>
+                    <span class="home-badge" id="adminStatsUpdated">Actualizado hace 2 min</span>
+                </div>
+
+                <div class="admin-stats-grid" id="adminStatsGrid">
+                    <article class="admin-stat-card" aria-label="Usuarios registrados">
+                        <p class="admin-stat-label">Usuarios registrados</p>
+                        <p class="admin-stat-value" id="adminTotalUsers">0</p>
+                        <p class="admin-stat-trend" id="adminUsersTrend">+0 esta semana</p>
+                    </article>
+                    <article class="admin-stat-card" aria-label="Artistas activos">
+                        <p class="admin-stat-label">Artistas activos</p>
+                        <p class="admin-stat-value" id="adminTotalArtists">0</p>
+                        <p class="admin-stat-trend" id="adminArtistsTrend">+0 este mes</p>
+                    </article>
+                    <article class="admin-stat-card" aria-label="Canciones subidas">
+                        <p class="admin-stat-label">Canciones subidas</p>
+                        <p class="admin-stat-value" id="adminTotalSongs">0</p>
+                        <p class="admin-stat-trend" id="adminSongsTrend">+0 hoy</p>
+                    </article>
+                    <article class="admin-stat-card" aria-label="Playlists creadas">
+                        <p class="admin-stat-label">Playlists creadas</p>
+                        <p class="admin-stat-value" id="adminTotalPlaylists">0</p>
+                        <p class="admin-stat-trend" id="adminPlaylistsTrend">+0 hoy</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="home-canciones-panel admin-detail-panel" aria-label="Detalle de actividad">
+                <div class="home-panel-head">
+                    <h2>Actividad reciente</h2>
+                    <span class="home-badge" id="adminPeriodBadge">Ultimos 7 dias</span>
+                </div>
+
+                <div class="admin-detail-grid">
+                    <article class="admin-list-card" aria-label="Top generos">
+                        <h3>Top generos</h3>
+                        <ul id="adminTopGenres" class="admin-list"></ul>
+                    </article>
+
+                    <article class="admin-list-card" aria-label="Top artistas por reproducciones">
+                        <h3>Top artistas (reproducciones)</h3>
+                        <ul id="adminTopArtists" class="admin-list"></ul>
+                    </article>
+
+                    <article class="admin-list-card" aria-label="Estado de moderacion">
+                        <h3>Estado de contenidos</h3>
+                        <ul id="adminModerationStats" class="admin-list"></ul>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -2808,6 +2808,106 @@ body.perfil-page .perfil-settings-panel {
     accent-color: #BC13FE;
 }
 
+/* ========================================
+   ADMIN PAGE
+   ======================================== */
+body.admin-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at 25% 20%, rgba(188, 19, 254, 0.2), transparent 45%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 35%, #2d1050 100%);
+    color: #fff;
+    overflow-x: hidden;
+}
+
+body.admin-page .admin-overview-panel,
+body.admin-page .admin-detail-panel {
+    min-height: auto;
+}
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.admin-stat-card {
+    border-radius: 14px;
+    border: 1px solid rgba(188, 19, 254, 0.35);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(188, 19, 254, 0.12));
+    padding: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.admin-stat-label {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.88rem;
+}
+
+.admin-stat-value {
+    margin: 8px 0 6px;
+    font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+    font-weight: 800;
+    color: #fff;
+}
+
+.admin-stat-trend {
+    margin: 0;
+    color: #d9b5ff;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.admin-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.admin-list-card {
+    border-radius: 14px;
+    border: 1px solid rgba(188, 19, 254, 0.32);
+    background: rgba(255, 255, 255, 0.08);
+    padding: 14px;
+}
+
+.admin-list-card h3 {
+    margin: 0 0 12px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.admin-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 19, 254, 0.25);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-list li span {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.9rem;
+}
+
+.admin-list li strong {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
 @media (max-width: 980px) {
     .home-layout {
         grid-template-columns: 1fr;
@@ -2892,6 +2992,14 @@ body.perfil-page .perfil-settings-panel {
         grid-template-columns: 1fr;
     }
 
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
     .artist-image-shell {
         max-width: 240px;
         margin: 0 auto;
@@ -2922,6 +3030,10 @@ body.perfil-page .perfil-settings-panel {
 }
 
 @media (max-width: 560px) {
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
     .artist-stats-grid {
         grid-template-columns: 1fr;
     }

@@ -39,6 +39,10 @@ if (existsSync(resolve(__dirname, 'artista/album_artista.html'))) {
   input.artista_album = resolve(__dirname, 'artista/album_artista.html')
 }
 
+if (existsSync(resolve(__dirname, 'admin/admin_site.html'))) {
+  input.admin_site = resolve(__dirname, 'admin/admin_site.html')
+}
+
 export default defineConfig({
   build: {
     rollupOptions: {

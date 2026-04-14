@@ -89,6 +89,35 @@ const ARTIST_GENRE_OPTIONS = [
     { id: 9, name: 'Dream Pop' }
 ];
 
+const ADMIN_DEFAULT_STATS = {
+    users: { total: 1284, trend: '+12 esta semana' },
+    artists: { total: 212, trend: '+6 este mes' },
+    songs: { total: 8932, trend: '+248 hoy' },
+    playlists: { total: 3410, trend: '+19 hoy' },
+    updatedLabel: 'Actualizado hace 2 min',
+    periodLabel: 'Ultimos 7 dias',
+    topGenres: [
+        { label: 'Pop', value: '2,190 canciones' },
+        { label: 'Synth Pop', value: '1,842 canciones' },
+        { label: 'Electronic', value: '1,415 canciones' },
+        { label: 'Indie Pop', value: '1,172 canciones' },
+        { label: 'Retrowave', value: '986 canciones' }
+    ],
+    topArtists: [
+        { label: 'Nova Skies', value: '5.2M plays' },
+        { label: 'Lumen Duo', value: '4.9M plays' },
+        { label: 'Aurora Set', value: '4.1M plays' },
+        { label: 'Orbit Kids', value: '3.6M plays' },
+        { label: 'Mira Flux', value: '3.2M plays' }
+    ],
+    moderation: [
+        { label: 'Canciones publicadas', value: '8,320' },
+        { label: 'Pendientes de revision', value: '84' },
+        { label: 'Reportes abiertos', value: '37' },
+        { label: 'Bloqueos recientes', value: '6' }
+    ]
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
     const isLoginPage = body.classList.contains('login-page');
@@ -96,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isArtistHomePage = body.classList.contains('home-artista-page');
     const isArtistSongPage = body.classList.contains('artist-song-page');
     const isArtistAlbumPage = body.classList.contains('artist-album-page');
+    const isAdminPage = body.classList.contains('admin-page');
     const isHomePage = body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage && !body.classList.contains('save-page') && !body.classList.contains('playlist-page') && !body.classList.contains('perfil-page') && !body.classList.contains('buscar-page') && !body.classList.contains('artist-page');
     const isSongLibraryPage = (body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage) || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('buscar-page') || body.classList.contains('artist-page');
 
@@ -141,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', logout);
     }
 
-    if (isHomePage || isArtistHomePage || isArtistSongPage || isArtistAlbumPage || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('perfil-page')) {
+    if (isHomePage || isArtistHomePage || isArtistSongPage || isArtistAlbumPage || isAdminPage || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('perfil-page')) {
         initHomeInteractions();
     }
 
@@ -179,6 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
         initArtistAlbumPage();
     }
 
+    if (isAdminPage) {
+        initAdminDashboard();
+    }
+
     if (isSongLibraryPage && !isLoginPage && !isRegisterPage) {
         initGlobalPlayerBar();
     }
@@ -194,7 +228,7 @@ function checkSession() {
     const path = window.location.pathname;
 
     // Si intenta entrar a una home sin token, fuera
-    if ((path.includes('home.html') || path.includes('home_artista.html')) && !token) {
+    if ((path.includes('home.html') || path.includes('home_artista.html') || path.includes('admin_site.html')) && !token) {
         alert("Sessió no vàlida. Si us plau, identifica't.");
         window.location.href = 'index.html';
     }
@@ -1191,6 +1225,36 @@ function initArtistSongPage() {
     });
 
     renderList();
+}
+
+function initAdminDashboard() {
+    const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    };
+
+    const renderList = (id, items) => {
+        const list = document.getElementById(id);
+        if (!list) return;
+        list.innerHTML = (items || [])
+            .map((item) => `<li><span>${item.label}</span><strong>${item.value}</strong></li>`)
+            .join('');
+    };
+
+    setText('adminTotalUsers', formatPlayCount(Number(ADMIN_DEFAULT_STATS.users.total) || 0));
+    setText('adminUsersTrend', ADMIN_DEFAULT_STATS.users.trend);
+    setText('adminTotalArtists', formatPlayCount(Number(ADMIN_DEFAULT_STATS.artists.total) || 0));
+    setText('adminArtistsTrend', ADMIN_DEFAULT_STATS.artists.trend);
+    setText('adminTotalSongs', formatPlayCount(Number(ADMIN_DEFAULT_STATS.songs.total) || 0));
+    setText('adminSongsTrend', ADMIN_DEFAULT_STATS.songs.trend);
+    setText('adminTotalPlaylists', formatPlayCount(Number(ADMIN_DEFAULT_STATS.playlists.total) || 0));
+    setText('adminPlaylistsTrend', ADMIN_DEFAULT_STATS.playlists.trend);
+    setText('adminStatsUpdated', ADMIN_DEFAULT_STATS.updatedLabel);
+    setText('adminPeriodBadge', ADMIN_DEFAULT_STATS.periodLabel);
+
+    renderList('adminTopGenres', ADMIN_DEFAULT_STATS.topGenres);
+    renderList('adminTopArtists', ADMIN_DEFAULT_STATS.topArtists);
+    renderList('adminModerationStats', ADMIN_DEFAULT_STATS.moderation);
 }
 
 function normalizeSearchText(value) {
