@@ -62,11 +62,18 @@
 				</div>
 				<p id="playlistNowPlaying" class="playlist-now-playing" aria-live="polite">No hay reproduccion activa.</p>
 
+				<form id="createPlaylistForm" class="playlist-create-form" aria-label="Crear nueva playlist">
+					<label for="input-nom-playlist" class="playlist-create-label">Nom de la playlist</label>
+					<div class="playlist-create-controls">
+						<input id="input-nom-playlist" name="nom" type="text" class="playlist-create-input" placeholder="Ej. Running Night Mix" maxlength="80" required>
+						<button type="submit" class="playlist-create-submit">
+							<i class="fa-solid fa-plus" aria-hidden="true"></i>
+							Crear playlist
+						</button>
+					</div>
+				</form>
+
 				<div class="playlist-grid" id="playlistGrid">
-					<button type="button" id="createPlaylistCard" class="playlist-create-card" aria-label="Crear nueva playlist">
-						<span class="playlist-create-plus">+</span>
-						<span class="playlist-create-text">Crear nueva playlist</span>
-					</button>
 				</div>
 			</section>
 		</main>

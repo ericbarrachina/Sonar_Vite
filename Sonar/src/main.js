@@ -6,7 +6,6 @@ const API_URL = 'http://172.20.10.3:3000';
 let isPlaylistPopoverDismissBound = false;
 let isArtistAlbumPopoverDismissBound = false;
 let globalPlayer = null;
-let songInfoModal = null;
 const globalPlayerState = {
     queue: [],
     index: -1,
@@ -650,6 +649,8 @@ function initHomeInteractions() {
     const starButton = document.getElementById('homeStarButton');
     const starPopup = document.getElementById('homeStarPopup');
     const starClose = document.getElementById('homeStarClose');
+    const starTitle = starPopup?.querySelector('h3');
+    const starDescription = starPopup?.querySelector('p');
 
     if (menuToggle && sidebar) {
         menuToggle.addEventListener('click', () => {
@@ -657,9 +658,73 @@ function initHomeInteractions() {
         });
     }
 
+    const getRandomSongsQueue = async () => {
+        const songsFromCards = getSongQueueFromCards();
+        if (songsFromCards.length > 0) return songsFromCards;
+
+        const response = await fetch(`${API_URL}/cancons`, {
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(result?.message || `Error ${response.status} al cargar canciones`);
+        }
+
+        const songs = Array.isArray(result)
+            ? result
+            : Array.isArray(result?.data)
+                ? result.data
+                : Array.isArray(result?.rows)
+                    ? result.rows
+                    : Array.isArray(result?.canciones)
+                        ? result.canciones
+                        : [];
+
+        return songs.map((song) => {
+            const idCanco = Number(song?.id_canco || song?.id || 0);
+            return {
+                song: song?.titol || song?.nom || song?.titulo || 'Sin titulo',
+                artist: song?.artista || song?.nom_artista || 'Desconocido',
+                genre: song?.genere || song?.genero || '',
+                id_canco: idCanco,
+                cover: idCanco > 0 ? `${API_URL}/imatge/${idCanco}` : '',
+                audioSrc: idCanco > 0 ? `${API_URL}/audio/${idCanco}` : ''
+            };
+        });
+    };
+
     if (starButton && starPopup) {
-        starButton.addEventListener('click', () => {
-            starPopup.classList.toggle('open');
+        starButton.addEventListener('click', async () => {
+            try {
+                const queue = await getRandomSongsQueue();
+                if (queue.length === 0) {
+                    if (starTitle) starTitle.textContent = 'No hay canciones';
+                    if (starDescription) starDescription.textContent = 'Todavia no hay canciones disponibles para elegir una random.';
+                    starPopup.classList.add('open');
+                    return;
+                }
+
+                const randomIndex = Math.floor(Math.random() * queue.length);
+                const randomSong = queue[randomIndex];
+
+                startGlobalPlayback(queue, randomIndex, true);
+
+                if (starTitle) starTitle.textContent = 'Tu random de hoy';
+                if (starDescription) {
+                    starDescription.textContent = `${randomSong.song} - ${randomSong.artist}`;
+                }
+
+                starPopup.classList.add('open');
+            } catch (error) {
+                console.error('No se pudo obtener una cancion random.', error);
+                if (starTitle) starTitle.textContent = 'Error';
+                if (starDescription) {
+                    starDescription.textContent = 'No se pudo obtener una cancion aleatoria en este momento.';
+                }
+                starPopup.classList.add('open');
+            }
         });
     }
 
@@ -1684,11 +1749,8 @@ function initPlaylistQuickSave() {
     const songActionRows = Array.from(document.querySelectorAll('.song-card .song-actions'));
     if (songActionRows.length === 0) return;
 
-    initPlaylistPopoverDismiss();
-
     songActionRows.forEach((row) => {
         let addButton = row.querySelector('.playlist-add-btn');
-        let infoButton = row.querySelector('.song-info-btn');
 
         if (!addButton) {
             addButton = document.createElement('button');
@@ -1699,38 +1761,27 @@ function initPlaylistQuickSave() {
             row.appendChild(addButton);
         }
 
-        if (!infoButton) {
-            infoButton = document.createElement('button');
-            infoButton.type = 'button';
-            infoButton.className = 'song-action-btn song-info-btn';
-            infoButton.setAttribute('aria-label', 'Ver informacion de la cancion');
-            infoButton.textContent = 'i';
-            row.appendChild(infoButton);
-        }
-
         if (addButton.dataset.playlistBound === 'true') return;
         addButton.dataset.playlistBound = 'true';
 
-        addButton.addEventListener('click', (event) => {
+        addButton.addEventListener('click', async (event) => {
             event.stopPropagation();
 
             const card = addButton.closest('.song-card');
             if (!card) return;
 
             const songData = extractSongFromCard(card);
+            const idCanco = Number(songData.id_canco || songData.idCanco || card.dataset.idCanco || card.dataset.songId || 0);
+            if (!Number.isFinite(idCanco) || idCanco <= 0) {
+                alert('No s\'ha trobat l\'ID de la canço.');
+                return;
+            }
 
-            openPlaylistPopover(addButton, songData);
-        });
-
-        if (infoButton.dataset.infoBound === 'true') return;
-        infoButton.dataset.infoBound = 'true';
-
-        infoButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-
-            const card = infoButton.closest('.song-card');
-            const songData = extractSongFromCard(card);
-            openSongInfoModal(songData);
+            await openPlaylistPopover(addButton, {
+                ...songData,
+                id_canco: idCanco,
+                idCanco
+            });
         });
     });
 }
@@ -1794,74 +1845,6 @@ function initSongCardVisuals(root = document) {
     });
 }
 
-function initSongInfoModal() {
-    if (songInfoModal) return songInfoModal;
-
-    const overlay = document.createElement('div');
-    overlay.id = 'songInfoModal';
-    overlay.className = 'song-info-modal';
-    overlay.hidden = true;
-    overlay.innerHTML = `
-        <div class="song-info-panel" role="dialog" aria-modal="true" aria-labelledby="songInfoTitle">
-            <button type="button" class="song-info-close" id="songInfoClose" aria-label="Cerrar">&times;</button>
-            <h3 id="songInfoTitle">Info de la cancion</h3>
-            <p class="song-info-line"><span>Titulo</span><strong id="songInfoSong">-</strong></p>
-            <p class="song-info-line"><span>Artista</span><strong id="songInfoArtist">-</strong></p>
-            <p class="song-info-line"><span>Album</span><strong id="songInfoAlbum">-</strong></p>
-            <p class="song-info-line"><span>Genero</span><strong id="songInfoGenre">-</strong></p>
-            <p class="song-info-line"><span>Fecha</span><strong id="songInfoYear">-</strong></p>
-            <p class="song-info-line"><span>Duracion</span><strong id="songInfoDuration">-</strong></p>
-            <p class="song-info-line"><span>Reproducciones</span><strong id="songInfoPlays">-</strong></p>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    const close = () => {
-        overlay.hidden = true;
-    };
-
-    overlay.addEventListener('click', (event) => {
-        if (event.target.closest('.song-info-close')) {
-            close();
-            return;
-        }
-
-        if (event.target === overlay) {
-            close();
-        }
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !overlay.hidden) {
-            close();
-        }
-    });
-
-    songInfoModal = overlay;
-    return overlay;
-}
-
-function openSongInfoModal(songData) {
-    const modal = initSongInfoModal();
-    const info = getSongInfo(songData);
-
-    const setText = (id, value) => {
-        const element = modal.querySelector(id);
-        if (element) element.textContent = value;
-    };
-
-    setText('#songInfoSong', info.song);
-    setText('#songInfoArtist', info.artist);
-    setText('#songInfoAlbum', info.album);
-    setText('#songInfoGenre', info.genre);
-    setText('#songInfoYear', info.year);
-    setText('#songInfoDuration', info.duration);
-    setText('#songInfoPlays', info.plays);
-
-    modal.hidden = false;
-}
-
 function createPlaylistPopover() {
     let popover = document.getElementById('playlistPopover');
     if (popover) return popover;
@@ -1878,38 +1861,6 @@ function closePlaylistPopover() {
     const popover = document.getElementById('playlistPopover');
     if (!popover) return;
     popover.hidden = true;
-}
-
-function openPlaylistPopover(anchorElement, songData) {
-    const popover = createPlaylistPopover();
-    initPlaylistPopoverDismiss();
-    renderPlaylistOptions(popover, songData, closePlaylistPopover);
-
-    const rect = anchorElement.getBoundingClientRect();
-
-    // Show first (hidden visually) to measure and place reliably.
-    popover.hidden = false;
-    popover.style.visibility = 'hidden';
-
-    const popoverWidth = popover.offsetWidth || 265;
-    const popoverHeight = popover.offsetHeight || 220;
-    const margin = 10;
-
-    let left = window.scrollX + rect.left - ((popoverWidth - rect.width) / 2);
-    const minLeft = window.scrollX + 8;
-    const maxLeft = window.scrollX + window.innerWidth - popoverWidth - 8;
-    left = Math.min(Math.max(left, minLeft), Math.max(minLeft, maxLeft));
-
-    // Open upward by default; if there's no space, open downward.
-    let top = window.scrollY + rect.top - popoverHeight - margin;
-    const minTop = window.scrollY + 8;
-    if (top < minTop) {
-        top = window.scrollY + rect.bottom + margin;
-    }
-
-    popover.style.left = `${left}px`;
-    popover.style.top = `${top}px`;
-    popover.style.visibility = 'visible';
 }
 
 function initPlaylistPopoverDismiss() {
@@ -1939,142 +1890,71 @@ function initPlaylistPopoverDismiss() {
     });
 }
 
-function getPlaylists() {
-    try {
-        const stored = JSON.parse(localStorage.getItem('sonar_playlists') || '[]');
-        if (Array.isArray(stored) && stored.length > 0) return stored;
-    } catch (error) {
-        console.warn('No se pudieron leer playlists guardadas.', error);
+async function afegirCancoAPlaylist(idPlaylist, idCanco) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        throw new Error("Has d'iniciar sessió per afegir cançons a una playlist.");
     }
 
-    const defaults = ['Favoritas', 'Gym', 'Chill'];
-    localStorage.setItem('sonar_playlists', JSON.stringify(defaults));
-    return defaults;
-}
+    const response = await fetch(`${API_URL}/afegir-a-playlist`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            id_playlist: idPlaylist,
+            id_canco: idCanco
+        })
+    });
 
-function savePlaylistName(name) {
-    const normalizedName = (name || '').trim();
-    if (!normalizedName) return null;
-
-    const playlists = getPlaylists();
-    const exists = playlists.some((playlist) => playlist.toLowerCase() === normalizedName.toLowerCase());
-    if (exists) {
-        return playlists.find((playlist) => playlist.toLowerCase() === normalizedName.toLowerCase()) || normalizedName;
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.success) {
+        throw new Error(data?.message || `Error ${response.status} al afegir la cançó`);
     }
 
-    const updated = [...playlists, normalizedName];
-    localStorage.setItem('sonar_playlists', JSON.stringify(updated));
-    return normalizedName;
+    return data;
 }
 
-function saveSongToPlaylist(playlistName, songData) {
-    let playlistSongs = {};
-
-    try {
-        playlistSongs = JSON.parse(localStorage.getItem('sonar_playlist_songs') || '{}');
-    } catch (error) {
-        console.warn('No se pudieron leer canciones guardadas.', error);
-    }
-
-    const currentSongs = Array.isArray(playlistSongs[playlistName]) ? playlistSongs[playlistName] : [];
-    const alreadyExists = currentSongs.some((item) => item.song === songData.song && item.artist === songData.artist);
-    if (alreadyExists) return false;
-
-    const nextSongs = [...currentSongs, songData];
-    const updated = { ...playlistSongs, [playlistName]: nextSongs };
-    localStorage.setItem('sonar_playlist_songs', JSON.stringify(updated));
-    return true;
-}
-
-function saveSongToLibrary(songData) {
-    let savedSongs = [];
-
-    try {
-        savedSongs = JSON.parse(localStorage.getItem('sonar_saved_songs') || '[]');
-        if (!Array.isArray(savedSongs)) savedSongs = [];
-    } catch (error) {
-        console.warn('No se pudieron leer canciones guardadas.', error);
-    }
-
-    const alreadyExists = savedSongs.some((item) => item.song === songData.song && item.artist === songData.artist);
-    if (alreadyExists) return false;
-
-    const updated = [...savedSongs, songData];
-    localStorage.setItem('sonar_saved_songs', JSON.stringify(updated));
-    return true;
-}
-
-function removeSongFromLibrary(songData) {
-    let savedSongs = [];
-
-    try {
-        savedSongs = JSON.parse(localStorage.getItem('sonar_saved_songs') || '[]');
-        if (!Array.isArray(savedSongs)) savedSongs = [];
-    } catch (error) {
-        console.warn('No se pudieron leer canciones guardadas.', error);
-    }
-
-    const nextSongs = savedSongs.filter((item) => !(item.song === songData.song && item.artist === songData.artist));
-    const removed = nextSongs.length !== savedSongs.length;
-    localStorage.setItem('sonar_saved_songs', JSON.stringify(nextSongs));
-    return removed;
-}
-
-function isSongInLibrary(songData) {
-    try {
-        const savedSongs = JSON.parse(localStorage.getItem('sonar_saved_songs') || '[]');
-        if (!Array.isArray(savedSongs)) return false;
-        return savedSongs.some((item) => item.song === songData.song && item.artist === songData.artist);
-    } catch (error) {
-        return false;
-    }
-}
-
-function renderPlaylistOptions(popover, songData, closePopover) {
-    const playlists = getPlaylists();
-
+function renderPlaylistPopoverContent(popover, songData, playlists = []) {
     popover.innerHTML = '';
 
     const title = document.createElement('p');
     title.className = 'playlist-popover-title';
-    title.textContent = `Guardar "${songData.song}"`;
+    title.textContent = `Afegir "${songData.song || 'Canço'}"`;
     popover.appendChild(title);
-
-    const saveButton = document.createElement('button');
-    saveButton.type = 'button';
-    saveButton.className = 'playlist-popover-save';
-    const alreadySaved = isSongInLibrary(songData);
-    saveButton.textContent = alreadySaved ? 'Quitar de guardadas' : 'Guardar cancion';
-    saveButton.addEventListener('click', () => {
-        if (alreadySaved) {
-            const wasRemoved = removeSongFromLibrary(songData);
-            showPlaylistFeedback(popover, wasRemoved ? 'Cancion quitada de guardadas.' : 'No estaba en guardadas.');
-            if (document.body.classList.contains('save-page')) {
-                closePopover();
-                initSavedSongsPage();
-            }
-            return;
-        }
-
-        const wasSaved = saveSongToLibrary(songData);
-        showPlaylistFeedback(popover, wasSaved ? 'Cancion guardada en tu biblioteca.' : 'Esta cancion ya estaba guardada.');
-    });
-    popover.appendChild(saveButton);
 
     const list = document.createElement('div');
     list.className = 'playlist-popover-list';
 
-    playlists.forEach((playlistName) => {
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'playlist-popover-feedback';
+        empty.textContent = 'No tens playlists creades encara.';
+        popover.appendChild(empty);
+        return;
+    }
+
+    playlists.forEach((playlist) => {
         const option = document.createElement('button');
         option.type = 'button';
         option.className = 'playlist-popover-option';
-        option.textContent = playlistName;
+        option.textContent = playlist.nom;
 
-        option.addEventListener('click', () => {
-            const wasSaved = saveSongToPlaylist(playlistName, songData);
-            showPlaylistFeedback(popover, wasSaved ? `Guardada en ${playlistName}` : `Ya existe en ${playlistName}`);
-            if (wasSaved) {
-                setTimeout(closePopover, 600);
+        option.addEventListener('click', async () => {
+            try {
+                const idPlaylist = Number(playlist.id_playlist || 0);
+                const idCanco = Number(songData.id_canco || songData.idCanco || 0);
+                if (!idPlaylist || !idCanco) {
+                    throw new Error('No s\'ha pogut identificar la playlist o la cançó.');
+                }
+
+                await afegirCancoAPlaylist(idPlaylist, idCanco);
+                alert(`Cançó afegida a "${playlist.nom}"!`);
+                closePlaylistPopover();
+            } catch (error) {
+                const feedback = popover.querySelector('#playlistPopoverFeedback');
+                if (feedback) feedback.textContent = error?.message || 'No s\'ha pogut afegir la cançó.';
             }
         });
 
@@ -2083,132 +1963,347 @@ function renderPlaylistOptions(popover, songData, closePopover) {
 
     popover.appendChild(list);
 
-    const createBtn = document.createElement('button');
-    createBtn.type = 'button';
-    createBtn.className = 'playlist-popover-create';
-    createBtn.textContent = '+ Nueva playlist';
-
-    createBtn.addEventListener('click', () => {
-        const newName = window.prompt('Nombre de la nueva playlist:');
-        const savedName = savePlaylistName(newName);
-        if (!savedName) return;
-
-        const wasSaved = saveSongToPlaylist(savedName, songData);
-        showPlaylistFeedback(popover, wasSaved ? `Guardada en ${savedName}` : `Ya existe en ${savedName}`);
-        renderPlaylistOptions(popover, songData, closePopover);
-    });
-
-    popover.appendChild(createBtn);
-
     const feedback = document.createElement('p');
     feedback.className = 'playlist-popover-feedback';
     feedback.id = 'playlistPopoverFeedback';
     popover.appendChild(feedback);
 }
 
-function showPlaylistFeedback(popover, message) {
-    const feedback = popover.querySelector('#playlistPopoverFeedback');
-    if (!feedback) return;
-    feedback.textContent = message;
+async function openPlaylistPopover(anchorElement, songData) {
+    initPlaylistPopoverDismiss();
+    const popover = createPlaylistPopover();
+
+    popover.innerHTML = '<p class="playlist-popover-feedback">Carregant playlists...</p>';
+    popover.hidden = false;
+    popover.style.visibility = 'hidden';
+
+    const rect = anchorElement.getBoundingClientRect();
+    const popoverWidth = popover.offsetWidth || 265;
+    const popoverHeight = popover.offsetHeight || 220;
+    const margin = 10;
+
+    let left = window.scrollX + rect.left - ((popoverWidth - rect.width) / 2);
+    const minLeft = window.scrollX + 8;
+    const maxLeft = window.scrollX + window.innerWidth - popoverWidth - 8;
+    left = Math.min(Math.max(left, minLeft), Math.max(minLeft, maxLeft));
+
+    let top = window.scrollY + rect.top - popoverHeight - margin;
+    const minTop = window.scrollY + 8;
+    if (top < minTop) {
+        top = window.scrollY + rect.bottom + margin;
+    }
+
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+    popover.style.visibility = 'visible';
+
+    try {
+        const playlists = await fetchMisPlaylists();
+        renderPlaylistPopoverContent(popover, songData, playlists);
+    } catch (error) {
+        popover.innerHTML = `<p class="playlist-popover-feedback">${error?.message || 'No s\'han pogut carregar les playlists.'}</p>`;
+    }
 }
 
-function initPlaylistPage() {
-    const playlistGrid = document.getElementById('playlistGrid');
-    const createCard = document.getElementById('createPlaylistCard');
+async function afegirAPlaylist(idCanco) {
+    const nomPlaylist = prompt('Introdueix el nom de la teva Playlist:');
+    if (!nomPlaylist) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert("Has d'iniciar sessió per afegir cançons a una playlist.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/crear-playlist`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                nom_playlist: nomPlaylist,
+                id_canco: idCanco
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            const nomResposta = data?.playlist?.nom || data?.nom_playlist || nomPlaylist;
+            const idPlaylist = data?.playlist?.id ?? data?.id_playlist ?? 'N/A';
+            alert(`Afegit correctament!\nPlaylist: ${nomResposta}\nID playlist: ${idPlaylist}\nID canco: ${idCanco}`);
+        } else {
+            alert("Error: " + data.message);
+        }
+    } catch (error) {
+        console.error('Error de connexió:', error);
+        alert("No s'ha pogut connectar amb el servidor.");
+    }
+}
+
+async function crearPlaylist(event) {
+    event.preventDefault();
+
+    const playlistInput = document.getElementById('input-nom-playlist');
+    const nomPlaylist = (playlistInput?.value || '').trim();
+    const token = localStorage.getItem('token');
+
+    if (!nomPlaylist) {
+        alert('Introdueix un nom de playlist.');
+        return { success: false };
+    }
+
+    if (!token) {
+        alert("Has d'iniciar sessió per crear una playlist.");
+        return { success: false };
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/crear-playlist`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                nom: nomPlaylist
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const nomCreada = result?.playlist?.nom || nomPlaylist;
+            const idCreada = result?.playlist?.id ?? result?.id_playlist ?? 'N/A';
+            const missatge = result?.message || 'Playlist creada correctament';
+            alert(`${missatge}\nNom: ${nomCreada}\nID: ${idCreada}`);
+            return { success: true, nom: nomCreada, id: idCreada };
+        } else {
+            alert("Error: " + result.message);
+            return { success: false, message: result?.message };
+        }
+
+    } catch (error) {
+        console.error("Error de connexió:", error);
+        alert("No s'ha pogut connectar amb el servidor.");
+        return { success: false, message: error?.message };
+    }
+}
+
+function normalizePlaylistSong(songData, playlistName) {
+    const idCanco = Number(songData?.id_canco || songData?.id || 0);
+    return {
+        song: songData?.titol || songData?.nom || songData?.titulo || songData?.title || 'Cancion',
+        artist: songData?.artista || songData?.nom_artista || songData?.artist || 'Desconocido',
+        album: songData?.album || '',
+        genre: songData?.genere || songData?.genero || songData?.genre || '',
+        cover: idCanco > 0 ? `${API_URL}/imatge/${idCanco}` : '',
+        audioSrc: idCanco > 0 ? `${API_URL}/audio/${idCanco}` : '',
+        id_canco: idCanco,
+        playlist: playlistName || ''
+    };
+}
+
+function normalizePlaylistItem(playlist) {
+    const id = Number(playlist?.id_playlist || playlist?.id || 0);
+    const nom = String(playlist?.nom || playlist?.nom_playlist || playlist?.name || '').trim();
+    const rawSongs = playlist?.canciones || playlist?.cancons || playlist?.songs || [];
+    const songs = Array.isArray(rawSongs)
+        ? rawSongs.map((song) => normalizePlaylistSong(song, nom))
+        : [];
+    const totalCancons = Number(playlist?.total_cancons || songs.length || 0);
+
+    return {
+        id_playlist: id,
+        nom,
+        songs,
+        total_cancons: Number.isFinite(totalCancons) ? totalCancons : songs.length
+    };
+}
+
+async function fetchMisPlaylists() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        throw new Error('Inicia sessió per veure les teves playlists.');
+    }
+
+    const response = await fetch(`${API_URL}/mis-playlists`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result?.success) {
+        throw new Error(result?.message || `Error ${response.status} al cargar playlists`);
+    }
+
+    const data = Array.isArray(result?.data) ? result.data : [];
+    return data
+        .map((item) => normalizePlaylistItem(item))
+        .filter((item) => item.id_playlist > 0 && item.nom);
+}
+
+async function renderizarMisPlaylists() {
+    const contenedor = document.getElementById('lista-playlists') || document.getElementById('playlistGrid');
     const playlistCount = document.getElementById('playlistCount');
     const nowPlaying = document.getElementById('playlistNowPlaying');
 
-    if (!playlistGrid || !createCard) return;
+    if (!contenedor) return [];
 
-    const createPlaylist = () => {
-        const name = window.prompt('Nombre de la nueva playlist:');
-        const savedName = savePlaylistName(name);
-        if (!savedName) return;
-        renderPlaylistCards();
-    };
+    const token = localStorage.getItem('token');
+    if (!token) {
+        if (playlistCount) playlistCount.textContent = '0 playlists';
+        if (nowPlaying) {
+            nowPlaying.classList.add('error');
+            nowPlaying.textContent = 'Inicia sessió per veure les teves playlists.';
+        }
+        return [];
+    }
 
-    createCard.addEventListener('click', createPlaylist);
+    const previousCards = contenedor.querySelectorAll('.playlist-card');
+    previousCards.forEach((card) => card.remove());
 
-    const setNowPlaying = (message, isError = false) => {
-        if (!nowPlaying) return;
-        nowPlaying.textContent = message;
-        nowPlaying.classList.toggle('error', isError);
-    };
+    try {
+        const playlists = await fetchMisPlaylists();
 
-    const renderPlaylistCards = () => {
-        const previousCards = playlistGrid.querySelectorAll('.playlist-card');
-        previousCards.forEach((card) => card.remove());
-
-        const playlists = getPlaylists();
-
-        let playlistSongs = {};
-        try {
-            playlistSongs = JSON.parse(localStorage.getItem('sonar_playlist_songs') || '{}');
-        } catch (error) {
-            console.warn('No se pudieron leer canciones de playlists.', error);
+        if (playlists.length === 0) {
+            if (playlistCount) playlistCount.textContent = '0 playlists';
+            if (nowPlaying) {
+                nowPlaying.classList.remove('error');
+                nowPlaying.textContent = 'Encara no tens cap playlist creada.';
+            }
+            return [];
         }
 
-        playlists.forEach((playlistName) => {
-            const songs = Array.isArray(playlistSongs[playlistName]) ? playlistSongs[playlistName] : [];
-            const songCount = songs.length;
+        playlists.forEach((playlist) => {
+            const songs = playlist.songs;
+            const songCount = Number(playlist.total_cancons || songs.length || 0);
 
             const card = document.createElement('article');
             card.className = 'playlist-card';
 
-            const topLine = songs.slice(0, 2)
-                .map((song) => `${song.song} - ${song.artist}`)
-                .join(' | ');
+            const songsListHtml = songs.length > 0
+                ? songs
+                    .map((song) => `<li>${song.song} - ${song.artist}</li>`)
+                    .join('')
+                : '<li>Aquesta llista esta buida...</li>';
 
             card.innerHTML = `
-                <h3>${playlistName}</h3>
+                <h3>${playlist.nom}</h3>
                 <p class="playlist-card-meta">${songCount} cancion${songCount === 1 ? '' : 'es'}</p>
-                <p class="playlist-card-preview">${topLine || 'Aun no has guardado canciones.'}</p>
+                <p class="playlist-card-preview">Pulsa "Ver canciones" para ver el listado.</p>
                 <div class="playlist-card-actions">
                     <button type="button" class="playlist-card-btn" data-action="play"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Reproducir</span></button>
                     <button type="button" class="playlist-card-btn" data-action="shuffle"><i class="fa-solid fa-shuffle" aria-hidden="true"></i><span>Shuffle</span></button>
+                    <button type="button" class="playlist-card-btn" data-action="toggle-songs"><i class="fa-solid fa-list" aria-hidden="true"></i><span>Ver canciones</span></button>
+                </div>
+                <div class="playlist-card-songs" data-role="songs" hidden>
+                    <ul>${songsListHtml}</ul>
                 </div>
             `;
 
             const playBtn = card.querySelector('[data-action="play"]');
             const shuffleBtn = card.querySelector('[data-action="shuffle"]');
+            const toggleSongsBtn = card.querySelector('[data-action="toggle-songs"]');
+            const songsPanel = card.querySelector('[data-role="songs"]');
 
             if (playBtn) {
                 playBtn.addEventListener('click', () => {
                     if (songCount === 0) {
-                        setNowPlaying(`La playlist ${playlistName} no tiene canciones.`, true);
+                        if (nowPlaying) {
+                            nowPlaying.classList.add('error');
+                            nowPlaying.textContent = `La playlist ${playlist.nom} no tiene canciones.`;
+                        }
                         return;
                     }
 
-                    const queue = songs.map((song) => ({ ...song, playlist: playlistName }));
-                    startGlobalPlayback(queue, 0, true);
-                    setNowPlaying(`Reproduciendo: ${queue[0].song} - ${queue[0].artist} (${playlistName})`);
+                    startGlobalPlayback(songs, 0, true);
+                    if (nowPlaying) {
+                        nowPlaying.classList.remove('error');
+                        nowPlaying.textContent = `Reproduciendo: ${songs[0].song} - ${songs[0].artist} (${playlist.nom})`;
+                    }
                 });
             }
 
             if (shuffleBtn) {
                 shuffleBtn.addEventListener('click', () => {
                     if (songCount === 0) {
-                        setNowPlaying(`La playlist ${playlistName} no tiene canciones para shuffle.`, true);
+                        if (nowPlaying) {
+                            nowPlaying.classList.add('error');
+                            nowPlaying.textContent = `La playlist ${playlist.nom} no tiene canciones para shuffle.`;
+                        }
                         return;
                     }
 
                     const randomIndex = Math.floor(Math.random() * songCount);
-                    const queue = songs.map((song) => ({ ...song, playlist: playlistName }));
-                    startGlobalPlayback(queue, randomIndex, true);
-                    const randomSong = queue[randomIndex];
-                    setNowPlaying(`Shuffle: ${randomSong.song} - ${randomSong.artist} (${playlistName})`);
+                    startGlobalPlayback(songs, randomIndex, true);
+                    const randomSong = songs[randomIndex];
+                    if (nowPlaying) {
+                        nowPlaying.classList.remove('error');
+                        nowPlaying.textContent = `Shuffle: ${randomSong.song} - ${randomSong.artist} (${playlist.nom})`;
+                    }
                 });
             }
 
-            playlistGrid.insertBefore(card, createCard);
+            if (toggleSongsBtn && songsPanel) {
+                toggleSongsBtn.addEventListener('click', () => {
+                    const isHidden = songsPanel.hidden;
+                    songsPanel.hidden = !isHidden;
+                    const label = toggleSongsBtn.querySelector('span');
+                    if (label) {
+                        label.textContent = isHidden ? 'Ocultar canciones' : 'Ver canciones';
+                    }
+                });
+            }
+
+            contenedor.appendChild(card);
         });
 
         if (playlistCount) {
             playlistCount.textContent = `${playlists.length} playlist${playlists.length === 1 ? '' : 's'}`;
         }
-    };
 
-    renderPlaylistCards();
+        return playlists;
+    } catch (error) {
+        console.error('Error cargando playlists:', error);
+        if (playlistCount) playlistCount.textContent = '0 playlists';
+        if (nowPlaying) {
+            nowPlaying.classList.add('error');
+            nowPlaying.textContent = 'Error al carregar les llistes.';
+        }
+        return [];
+    }
+}
+
+function initPlaylistPage() {
+    const createPlaylistForm = document.getElementById('createPlaylistForm');
+    const playlistNameInput = document.getElementById('input-nom-playlist');
+    const nowPlaying = document.getElementById('playlistNowPlaying');
+
+    const playlistContainer = document.getElementById('playlistGrid') || document.getElementById('lista-playlists');
+    if (!playlistContainer) return;
+
+    if (createPlaylistForm) {
+        createPlaylistForm.addEventListener('submit', async (event) => {
+            const response = await crearPlaylist(event);
+            if (!response?.success) return;
+
+            createPlaylistForm.reset();
+            if (playlistNameInput) playlistNameInput.focus();
+
+            await renderizarMisPlaylists();
+
+            if (nowPlaying) {
+                nowPlaying.classList.remove('error');
+                nowPlaying.textContent = `Playlist creada: ${response.nom}`;
+            }
+        });
+    }
+
+    renderizarMisPlaylists();
 }
 
 function initSavedSongsPage() {
@@ -2351,7 +2446,19 @@ function initGlobalPlayerBar() {
     globalPlayer.addBtn.addEventListener('click', (event) => {
         const currentSong = getCurrentGlobalSong();
         if (!currentSong) return;
-        openPlaylistPopover(event.currentTarget, { song: currentSong.song, artist: currentSong.artist });
+
+        const idCanco = Number(currentSong.id_canco || currentSong.idCanco || 0);
+        if (!Number.isFinite(idCanco) || idCanco <= 0) {
+            alert('No s\'ha trobat l\'ID de la canço actual.');
+            return;
+        }
+
+        openPlaylistPopover(event.currentTarget, {
+            song: currentSong.song,
+            artist: currentSong.artist,
+            id_canco: idCanco,
+            idCanco
+        });
     });
 
     globalPlayer.volumeInput.addEventListener('input', (event) => {
@@ -2403,7 +2510,16 @@ function extractSongFromCard(card) {
     const genre = card.dataset.genre || '';
     const cover = card.querySelector('.song-cover img')?.getAttribute('src') || card.dataset.cover || '';
     const audioSrc = card.dataset.audioSrc || '';
-    return { song, artist, album, genre, cover, audioSrc };
+    const idCanco = Number(card.dataset.idCanco || card.dataset.songId || 0);
+    return {
+        song,
+        artist,
+        album,
+        genre,
+        cover,
+        audioSrc,
+        id_canco: Number.isFinite(idCanco) ? idCanco : 0
+    };
 }
 
 function getSongQueueFromCards() {
