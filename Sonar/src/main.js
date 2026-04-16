@@ -213,10 +213,134 @@ document.addEventListener('DOMContentLoaded', () => {
         initAdminDashboard();
     }
 
+    // Ejecutar al final para evitar que otro init reemplace el contenedor ya pintado.
+    if (isHomePage || isArtistHomePage) {
+        renderizarCanciones();
+    }
+
     if (isSongLibraryPage && !isLoginPage && !isRegisterPage) {
         initGlobalPlayerBar();
     }
 });
+
+async function renderizarCanciones() {
+    const contenedor = document.getElementById('lista-canciones') || document.getElementById('contenedor-musica') || document.getElementById('artistSongsGrid');
+
+    if (!contenedor) {
+        console.error("No existe ningún contenedor de canciones (lista-canciones o contenedor-musica).");
+        return;
+    }
+
+    contenedor.innerHTML = '<p class="buscar-empty" style="grid-column: 1 / -1; color: #fff;">Cargando canciones...</p>';
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+    try {
+        const response = await fetch(`${API_URL}/cancons`, {
+            method: 'GET',
+            cache: 'no-store',
+            signal: controller.signal
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const message = result?.message || `Error ${response.status} al cargar canciones`;
+            throw new Error(message);
+        }
+
+        const canciones = Array.isArray(result)
+            ? result
+            : Array.isArray(result.data)
+                ? result.data
+                : Array.isArray(result.rows)
+                    ? result.rows
+                    : Array.isArray(result.canciones)
+                        ? result.canciones
+                        : [];
+
+        if (canciones.length === 0) {
+            contenedor.innerHTML = '<p class="buscar-empty" style="grid-column: 1 / -1; color: #fff;">No hay canciones en la base de datos.</p>';
+            return;
+        }
+
+        const isArtistGrid = contenedor.id === 'artistSongsGrid';
+        if (isArtistGrid) {
+            const empty = document.getElementById('artistSongsEmpty');
+            const addWrap = document.getElementById('artistAddSongWrap');
+            const wrap = document.getElementById('artistSongsWrap');
+            const ranking = document.getElementById('artistViewsRanking');
+            const rankingPanel = ranking ? ranking.closest('aside') : null;
+
+            if (empty) empty.hidden = true;
+            if (addWrap) addWrap.hidden = true;
+            if (wrap) wrap.hidden = false;
+            if (rankingPanel) rankingPanel.hidden = true;
+        }
+
+        contenedor.innerHTML = '';
+
+        canciones.forEach((canco) => {
+            const titulo = canco.titol || canco.nom || canco.titulo || 'Sin titulo';
+            const artista = canco.artista || canco.nom_artista || 'Desconocido';
+            const genero = canco.genere || canco.genero || 'S/G';
+            const idCanco = canco.id_canco || canco.id || '';
+            const imageUrl = `${API_URL}/imatge/${idCanco}`;
+            const audioUrl = `${API_URL}/audio/${idCanco}`;
+
+            const card = document.createElement('article');
+            card.className = 'song-card card-canco';
+            card.dataset.song = titulo;
+            card.dataset.artist = artista;
+            card.dataset.genre = genero;
+            card.dataset.idCanco = String(idCanco);
+            card.dataset.cover = imageUrl;
+            card.dataset.audioSrc = audioUrl;
+
+            card.innerHTML = `
+                <div class="song-cover" aria-hidden="true">
+                    <img src="${imageUrl}" alt="Portada de ${titulo}" loading="lazy" decoding="async" fetchpriority="low">
+                </div>
+                <h3>${titulo}</h3>
+                <p class="song-artist">${artista}</p>
+                <p><strong>Genero:</strong> ${genero}</p>
+                <div class="song-actions" aria-label="Acciones de la cancion">
+                    <button type="button" class="song-action-btn" aria-label="Me gusta">&#128077;</button>
+                    <button type="button" class="song-action-btn" aria-label="No me gusta">&#128078;</button>
+                    <button type="button" class="song-action-btn" aria-label="Reproducir">&#9654;</button>
+                    <button type="button" class="song-action-btn playlist-add-btn" aria-label="Guardar en playlist">+</button>
+                </div>
+            `;
+
+            const img = card.querySelector('img');
+            if (img) {
+                img.addEventListener('error', () => {
+                    const cover = card.querySelector('.song-cover');
+                    if (cover) {
+                        cover.innerHTML = 'Portada';
+                    }
+                }, { once: true });
+            }
+
+            contenedor.appendChild(card);
+        });
+
+        // Reengancha comportamiento comun cuando se renderiza dinamicamente.
+        initSongCardVisuals(contenedor);
+        initPlaylistQuickSave();
+        initSongCardPlayback();
+    } catch (error) {
+        const message = error?.name === 'AbortError'
+            ? 'Tiempo de espera agotado al cargar canciones.'
+            : (error?.message || 'No se pudo cargar la musica.');
+
+        console.error('Error al cargar canciones:', error);
+        contenedor.innerHTML = `<p class="buscar-empty" style="grid-column: 1 / -1; color: #ff8f8f;">Error: ${message}</p>`;
+    } finally {
+        window.clearTimeout(timeoutId);
+    }
+}
 
 // ========================================
 // GESTIÓN DE SESIÓN (JWT)
@@ -256,8 +380,10 @@ function checkSession() {
 
 function logout() {
     localStorage.removeItem('sonar_token');
+    localStorage.removeItem('token');
     localStorage.removeItem('userName');
     localStorage.removeItem('userAlias');
+    localStorage.removeItem('userType');
     window.location.href = 'index.html';
 }
 
@@ -2164,6 +2290,7 @@ function initGlobalPlayerBar() {
                 <input type="range" id="playerVolume" min="0" max="100" step="1" value="70" aria-label="Control de volumen">
             </div>
         </div>
+        <audio id="globalPlayerAudio" preload="none" hidden></audio>
     `;
 
     document.body.appendChild(bar);
@@ -2181,6 +2308,7 @@ function initGlobalPlayerBar() {
         cover: bar.querySelector('#playerCover'),
         coverImg: bar.querySelector('#playerCoverImg'),
         coverFallback: bar.querySelector('#playerCoverFallback'),
+        audio: bar.querySelector('#globalPlayerAudio'),
         songTitle: bar.querySelector('#playerSongTitle'),
         songArtist: bar.querySelector('#playerSongArtist')
     };
@@ -2228,8 +2356,19 @@ function initGlobalPlayerBar() {
 
     globalPlayer.volumeInput.addEventListener('input', (event) => {
         globalPlayerState.volume = Number(event.target.value);
+        if (globalPlayer.audio) {
+            globalPlayer.audio.volume = globalPlayerState.volume / 100;
+        }
         updateGlobalPlayerUI();
     });
+
+    if (globalPlayer.audio) {
+        globalPlayer.audio.volume = globalPlayerState.volume / 100;
+        globalPlayer.audio.addEventListener('ended', () => {
+            if (globalPlayerState.queue.length === 0) return;
+            moveGlobalTrack(1);
+        });
+    }
 }
 
 function initSongCardPlayback() {
@@ -2263,7 +2402,8 @@ function extractSongFromCard(card) {
     const album = card.dataset.album || '';
     const genre = card.dataset.genre || '';
     const cover = card.querySelector('.song-cover img')?.getAttribute('src') || card.dataset.cover || '';
-    return { song, artist, album, genre, cover };
+    const audioSrc = card.dataset.audioSrc || '';
+    return { song, artist, album, genre, cover, audioSrc };
 }
 
 function getSongQueueFromCards() {
@@ -2292,6 +2432,7 @@ function startGlobalPlayback(queue, index = 0, autoplay = true) {
     }
 
     updateGlobalPlayerUI();
+    syncGlobalPlayerAudio();
 }
 
 function moveGlobalTrack(step) {
@@ -2300,6 +2441,38 @@ function moveGlobalTrack(step) {
     globalPlayerState.isPlaying = true;
     globalPlayerState.liked = 0;
     updateGlobalPlayerUI();
+    syncGlobalPlayerAudio();
+}
+
+function syncGlobalPlayerAudio() {
+    if (!globalPlayer?.audio) return;
+
+    const currentSong = getCurrentGlobalSong();
+    if (!currentSong) {
+        globalPlayer.audio.pause();
+        globalPlayer.audio.removeAttribute('src');
+        globalPlayer.audio.load();
+        return;
+    }
+
+    const nextSrc = currentSong.audioSrc || currentSong.audio_src || `${API_URL}/audio/${currentSong.id_canco || ''}`;
+    if (globalPlayer.audio.src !== nextSrc) {
+        globalPlayer.audio.src = nextSrc;
+        globalPlayer.audio.load();
+    }
+
+    globalPlayer.audio.volume = globalPlayerState.volume / 100;
+
+    if (globalPlayerState.isPlaying) {
+        const playPromise = globalPlayer.audio.play();
+        if (playPromise?.catch) {
+            playPromise.catch((error) => {
+                console.warn('No se pudo iniciar la reproduccion de audio.', error);
+            });
+        }
+    } else {
+        globalPlayer.audio.pause();
+    }
 }
 
 function updateGlobalPlayerUI() {
@@ -2328,6 +2501,7 @@ function updateGlobalPlayerUI() {
         globalPlayer.coverImg.alt = '';
         globalPlayer.coverImg.hidden = true;
         globalPlayer.coverFallback.hidden = true;
+        syncGlobalPlayerAudio();
         return;
     }
 
@@ -2344,4 +2518,6 @@ function updateGlobalPlayerUI() {
         playlistNowPlaying.classList.remove('error');
         playlistNowPlaying.textContent = `Reproduciendo: ${currentSong.song} - ${currentSong.artist}`;
     }
+
+    syncGlobalPlayerAudio();
 }
