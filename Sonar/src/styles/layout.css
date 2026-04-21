@@ -2407,41 +2407,6 @@ body.perfil-page .perfil-settings-panel {
     gap: 14px;
 }
 
-.artist-album-card {
-    border-radius: 14px;
-    border: 1px solid rgba(188, 19, 254, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 16px;
-    min-height: 212px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
-}
-
-.artist-album-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(188, 19, 254, 0.55);
-    box-shadow: 0 10px 24px rgba(188, 19, 254, 0.18);
-}
-
-.artist-album-cover {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    max-width: 120px;
-    border-radius: 12px;
-    border: 1px solid rgba(188, 19, 254, 0.42);
-    overflow: hidden;
-    background: linear-gradient(145deg, rgba(188, 19, 254, 0.16), rgba(255, 255, 255, 0.04));
-}
-
-.artist-album-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
 .artist-album-card h3 {
     color: #fff;
     font-size: 1.05rem;

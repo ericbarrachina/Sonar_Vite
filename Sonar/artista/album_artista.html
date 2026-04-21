@@ -55,32 +55,18 @@
 					<span class="home-badge" id="artistAlbumCountBadge">0 albumes</span>
 				</div>
 
-				<p id="artistAlbumEmpty" class="buscar-empty">Aun no has creado albumes. Pulsa en la tarjeta con + para empezar.</p>
+				<form id="artistAlbumForm" class="playlist-create-form" autocomplete="off" aria-label="Crear nuevo album">
+					<label for="albumName" class="playlist-create-label">Nom del nou album</label>
+					<div class="playlist-create-controls">
+						<input type="text" id="albumName" class="playlist-create-input" required placeholder="Ej. Noches de Abril">
+						<button type="submit" class="playlist-create-submit">Crear album</button>
+					</div>
+				</form>
+				<p id="artistAlbumFormFeedback" class="register-link" style="text-align: left; margin-top: 12px;"></p>
 
-				<div id="artistAlbumFormSection" hidden>
-					<form id="artistAlbumForm" class="login-form" autocomplete="off">
-						<div class="form-group">
-							<label for="albumName">Nombre del album</label>
-							<input type="text" id="albumName" required placeholder="Nombre del album">
-						</div>
-						<div class="form-group">
-							<label for="albumImagen">Foto del album (opcional)</label>
-							<input type="url" id="albumImagen" placeholder="https://...">
-						</div>
-
-						<div class="artist-song-form-actions">
-							<button type="submit" class="btn-primary">Crear album</button>
-							<button type="button" class="artist-song-cancel-btn" id="artistAlbumCancelBtn">Cancelar</button>
-						</div>
-					</form>
-					<p id="artistAlbumFormFeedback" class="register-link" style="text-align: left; margin-top: 12px;"></p>
-				</div>
+				<p id="artistAlbumEmpty" class="buscar-empty">Aun no has creado albumes.</p>
 
 				<div class="artist-album-grid" id="artistAlbumGrid">
-					<button type="button" id="artistCreateAlbumCard" class="playlist-create-card" aria-label="Crear nuevo album">
-						<span class="playlist-create-plus">+</span>
-						<span class="playlist-create-text">Crear album</span>
-					</button>
 				</div>
 			</section>
 		</main>
