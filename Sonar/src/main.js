@@ -89,31 +89,15 @@ const ARTIST_GENRE_OPTIONS = [
 ];
 
 const ADMIN_DEFAULT_STATS = {
-    users: { total: 1284, trend: '+12 esta semana' },
-    artists: { total: 212, trend: '+6 este mes' },
-    songs: { total: 8932, trend: '+248 hoy' },
-    playlists: { total: 3410, trend: '+19 hoy' },
-    updatedLabel: 'Actualizado hace 2 min',
-    periodLabel: 'Ultimos 7 dias',
+    users: { total: 0, trend: 'Total acumulado' },
+    artists: { total: 0, trend: 'Total acumulado' },
+    songs: { total: 0, trend: 'Total acumulado' },
+    playlists: { total: 0, trend: 'Total acumulado' },
+    albums: { total: 0, trend: 'Total acumulado' },
+    updatedLabel: 'Pendiente de actualizacion',
+    periodLabel: 'Top 5',
     topGenres: [
-        { label: 'Pop', value: '2,190 canciones' },
-        { label: 'Synth Pop', value: '1,842 canciones' },
-        { label: 'Electronic', value: '1,415 canciones' },
-        { label: 'Indie Pop', value: '1,172 canciones' },
-        { label: 'Retrowave', value: '986 canciones' }
-    ],
-    topArtists: [
-        { label: 'Nova Skies', value: '5.2M plays' },
-        { label: 'Lumen Duo', value: '4.9M plays' },
-        { label: 'Aurora Set', value: '4.1M plays' },
-        { label: 'Orbit Kids', value: '3.6M plays' },
-        { label: 'Mira Flux', value: '3.2M plays' }
-    ],
-    moderation: [
-        { label: 'Canciones publicadas', value: '8,320' },
-        { label: 'Pendientes de revision', value: '84' },
-        { label: 'Reportes abiertos', value: '37' },
-        { label: 'Bloqueos recientes', value: '6' }
+        { label: 'Sin datos', value: '0 canciones' }
     ]
 };
 
@@ -383,21 +367,106 @@ function logout() {
     localStorage.removeItem('userName');
     localStorage.removeItem('userAlias');
     localStorage.removeItem('userType');
+    localStorage.removeItem('authCode');
+    localStorage.removeItem('authEntity');
+    localStorage.removeItem('userEmail');
     window.location.href = 'index.html';
 }
 
-function storeAuthSession(data) {
+function getOrCreateFormErrorElement(formId, errorId) {
+    const form = document.getElementById(formId);
+    if (!form) return null;
+
+    let errorDiv = document.getElementById(errorId);
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = errorId;
+        errorDiv.style.color = '#ff4d4d';
+        errorDiv.style.fontSize = '0.9rem';
+        errorDiv.style.marginBottom = '15px';
+        errorDiv.style.textAlign = 'center';
+        errorDiv.style.fontWeight = '500';
+        errorDiv.style.display = 'none';
+        form.insertBefore(errorDiv, form.querySelector('button[type="submit"]'));
+    }
+
+    return errorDiv;
+}
+
+function setFormError(errorElement, message) {
+    if (!errorElement) return;
+    errorElement.textContent = message || '';
+    errorElement.style.display = message ? 'block' : 'none';
+}
+
+function resolveRedirectFromCodigo(codigo) {
+    const normalized = Number.parseInt(codigo, 10);
+    if (normalized === 1) return '/artista/home_artista.html';
+    if (normalized === 2) return '/admin/admin_site.html';
+    if (normalized === 3) return '/home.html';
+    return '';
+}
+
+function resolveAuthEntity(data, preferredEntity = '') {
+    const userData = data?.user || data || {};
+    const normalizedPreferred = String(preferredEntity || '').toLowerCase();
+    const rawType = String(userData?.tipus || data?.tipus || '').toLowerCase();
+
+    if (rawType.includes('artista')) return 'artistes';
+    if (rawType.includes('usuari') || rawType.includes('usuario')) return 'usuaris';
+
+    const hasArtistId = Number.parseInt(
+        userData?.id_artista
+        || userData?.artist_id
+        || userData?.id_artist
+        || data?.id_artista
+        || data?.artist_id
+        || data?.id_artist
+        || '0',
+        10
+    ) > 0;
+
+    if (hasArtistId) return 'artistes';
+
+    const hasUserId = Number.parseInt(
+        userData?.id_usuario
+        || userData?.id_usuari
+        || userData?.id_user
+        || userData?.user_id
+        || data?.id_usuario
+        || data?.id_usuari
+        || data?.id_user
+        || data?.user_id
+        || userData?.id
+        || data?.id
+        || '0',
+        10
+    ) > 0;
+
+    if (hasUserId) return 'usuaris';
+
+    if (normalizedPreferred === 'usuaris' || normalizedPreferred === 'usuarios') return 'usuaris';
+    if (normalizedPreferred === 'artistes' || normalizedPreferred === 'artistas') return 'artistes';
+
+    return '';
+}
+
+function storeAuthSession(data, preferredEntity = '') {
     if (!data) return;
 
     const userData = data.user || data;
+    const authCode = Number.parseInt(data?.codigo || userData?.codigo || '0', 10);
+    const authEntity = resolveAuthEntity(data, preferredEntity);
     const sessionUserId = Number.parseInt(
         userData?.id_usuario
+        || userData?.id_usuari
         || userData?.id_user
         || userData?.user_id
         || userData?.artist_id
         || userData?.id_artista
         || userData?.id
         || data?.id_usuario
+        || data?.id_usuari
         || data?.id_user
         || data?.user_id
         || data?.artist_id
@@ -424,23 +493,70 @@ function storeAuthSession(data) {
         localStorage.setItem('userType', data.user.tipus);
     }
 
+    if (Number.isFinite(authCode) && authCode > 0) {
+        localStorage.setItem('authCode', String(authCode));
+    }
+
+    const sessionEmail = userData?.correu || data?.correu || '';
+    if (sessionEmail) {
+        localStorage.setItem('userEmail', sessionEmail);
+    }
+
+    if (authEntity) {
+        localStorage.setItem('authEntity', authEntity);
+    }
+
     if (Number.isFinite(sessionUserId) && sessionUserId > 0) {
         localStorage.setItem('userId', String(sessionUserId));
         localStorage.setItem('id_usuario', String(sessionUserId));
+        localStorage.setItem('id_usuari', String(sessionUserId));
 
-        if (data.user?.tipus === 'artista') {
+        if (authEntity === 'artistes' || data.user?.tipus === 'artista') {
             localStorage.setItem('artistId', String(sessionUserId));
         }
     }
 }
 
-function resolveAuthRedirect(data, fallbackPath = '/home.html') {
+function resolveAuthRedirect(data, fallbackPath = '/home.html', preferredEntity = '') {
     if (typeof data?.redirect === 'string' && data.redirect.trim()) {
         return data.redirect;
     }
 
-    const userType = data?.user?.tipus || localStorage.getItem('userType');
-    if (userType === 'artista') {
+    const codigoFromResponse = Number.parseInt(data?.codigo || data?.user?.codigo || '0', 10);
+    const codigoFromStorage = Number.parseInt(localStorage.getItem('authCode') || '0', 10);
+    const redirectByCodigo = resolveRedirectFromCodigo(codigoFromResponse || codigoFromStorage);
+    if (redirectByCodigo) {
+        return redirectByCodigo;
+    }
+
+    const userData = data?.user || data || {};
+    const authEntity = resolveAuthEntity(data, preferredEntity) || localStorage.getItem('authEntity') || '';
+    const userType = userData?.tipus || localStorage.getItem('userType') || '';
+    const userId = Number.parseInt(
+        userData?.id_usuario
+        || userData?.id_usuari
+        || userData?.id_user
+        || userData?.user_id
+        || userData?.id
+        || localStorage.getItem('id_usuario')
+        || localStorage.getItem('id_usuari')
+        || localStorage.getItem('userId')
+        || '0',
+        10
+    );
+
+    // Orden solicitado:
+    // 1) Si pertenece a usuaris, validar admin por id=10.
+    // 2) Si no es admin, enviar a home usuario.
+    // 3) Si pertenece a artistes, enviar a home artista.
+    if (authEntity === 'usuaris') {
+        if (userId === 10) {
+            return '/admin/admin_site.html';
+        }
+        return '/home.html';
+    }
+
+    if (authEntity === 'artistes' || userType === 'artista') {
         return '/artista/home_artista.html';
     }
 
@@ -452,6 +568,9 @@ function resolveAuthRedirect(data, fallbackPath = '/home.html') {
 // ========================================
 async function handleRegistro(e) {
     e.preventDefault();
+
+    const errorDiv = getOrCreateFormErrorElement('registroForm', 'registroFormError');
+    setFormError(errorDiv, '');
 
     const dadesUsuari = {
         alias: document.getElementById('alias').value,
@@ -473,8 +592,8 @@ async function handleRegistro(e) {
 
         if (response.ok) {
             if (data.token || data.user) {
-                storeAuthSession(data);
-                window.location.replace(resolveAuthRedirect(data, '/home.html'));
+                storeAuthSession(data, 'usuaris');
+                window.location.replace(resolveAuthRedirect(data, '/home.html', 'usuaris'));
                 return;
             }
 
@@ -487,30 +606,38 @@ async function handleRegistro(e) {
             const loginData = await loginResponse.json().catch(() => ({}));
 
             if (loginResponse.ok) {
-                storeAuthSession(loginData);
-                window.location.replace(resolveAuthRedirect(loginData, '/home.html'));
+                storeAuthSession(loginData, 'usuaris');
+                window.location.replace(resolveAuthRedirect(loginData, '/home.html', 'usuaris'));
                 return;
             }
 
             alert("✅ ¡Cuenta creada con éxito! Ya puedes iniciar sesión.");
             window.location.replace('/login.html?registro=ok');
         } else {
-            alert("❌ Error: " + data.message);
+            const message = data?.message || 'No se pudo completar el registro.';
+            if (message.toLowerCase().includes('email ya existe')) {
+                setFormError(errorDiv, 'Este email ya existe en el sistema. Usa otro o inicia sesion.');
+            } else {
+                setFormError(errorDiv, message);
+            }
         }
     } catch (error) {
         console.error("Error en el registro:", error);
-        alert("No se pudo conectar con el servidor de Sonar.");
+        setFormError(errorDiv, 'No se pudo conectar con el servidor de Sonar.');
     }
 }
 
 async function handleRegistroArtista(e) {
     e.preventDefault();
 
+    const errorDiv = getOrCreateFormErrorElement('registroArtistaForm', 'registroArtistaFormError');
+    setFormError(errorDiv, '');
+
     const artistaData = {
         nom: document.getElementById('artistaNombre').value,
         correu: document.getElementById('artistaEmail').value,
         contrasenya: document.getElementById('artistaPassword').value,
-        imatge_perfil: document.getElementById('artistaImagen').value
+        imatge_perfil: ''
     };
 
     try {
@@ -524,8 +651,8 @@ async function handleRegistroArtista(e) {
 
         if (response.ok) {
             if (data.token || data.user) {
-                storeAuthSession(data);
-                window.location.replace(resolveAuthRedirect(data, '/home_artista.html'));
+                storeAuthSession(data, 'artistes');
+                window.location.replace(resolveAuthRedirect(data, '/home_artista.html', 'artistes'));
                 return;
             }
 
@@ -538,19 +665,24 @@ async function handleRegistroArtista(e) {
             const loginData = await loginResponse.json().catch(() => ({}));
 
             if (loginResponse.ok) {
-                storeAuthSession(loginData);
-                window.location.replace(resolveAuthRedirect(loginData, '/home_artista.html'));
+                storeAuthSession(loginData, 'artistes');
+                window.location.replace(resolveAuthRedirect(loginData, '/home_artista.html', 'artistes'));
                 return;
             }
 
             alert('✅ Cuenta de artista creada. Ahora puedes iniciar sesión.');
             window.location.replace('/login.html?registro=ok');
         } else {
-            alert('❌ Error: ' + (data.message || 'No se pudo crear la cuenta de artista.'));
+            const message = data?.message || 'No se pudo crear la cuenta de artista.';
+            if (message.toLowerCase().includes('email ya existe')) {
+                setFormError(errorDiv, 'Este email ya existe en el sistema. Usa otro o inicia sesion.');
+            } else {
+                setFormError(errorDiv, message);
+            }
         }
     } catch (error) {
         console.error('Error en el registro de artista:', error);
-        alert('No se pudo conectar con el servidor de Sonar.');
+        setFormError(errorDiv, 'No se pudo conectar con el servidor de Sonar.');
     }
 }
 
@@ -1235,6 +1367,7 @@ function getCurrentSessionUserId() {
         localStorage.getItem('userId')
         || localStorage.getItem('artistId')
         || localStorage.getItem('id_usuario')
+        || localStorage.getItem('id_usuari')
         || localStorage.getItem('id_user')
         || '0',
         10
@@ -1827,20 +1960,71 @@ function initAdminDashboard() {
             .join('');
     };
 
-    setText('adminTotalUsers', formatPlayCount(Number(ADMIN_DEFAULT_STATS.users.total) || 0));
-    setText('adminUsersTrend', ADMIN_DEFAULT_STATS.users.trend);
-    setText('adminTotalArtists', formatPlayCount(Number(ADMIN_DEFAULT_STATS.artists.total) || 0));
-    setText('adminArtistsTrend', ADMIN_DEFAULT_STATS.artists.trend);
-    setText('adminTotalSongs', formatPlayCount(Number(ADMIN_DEFAULT_STATS.songs.total) || 0));
-    setText('adminSongsTrend', ADMIN_DEFAULT_STATS.songs.trend);
-    setText('adminTotalPlaylists', formatPlayCount(Number(ADMIN_DEFAULT_STATS.playlists.total) || 0));
-    setText('adminPlaylistsTrend', ADMIN_DEFAULT_STATS.playlists.trend);
-    setText('adminStatsUpdated', ADMIN_DEFAULT_STATS.updatedLabel);
-    setText('adminPeriodBadge', ADMIN_DEFAULT_STATS.periodLabel);
+    const applyStats = (stats) => {
+        setText('adminTotalUsers', formatPlayCount(Number(stats.users.total) || 0));
+        setText('adminUsersTrend', stats.users.trend);
+        setText('adminTotalArtists', formatPlayCount(Number(stats.artists.total) || 0));
+        setText('adminArtistsTrend', stats.artists.trend);
+        setText('adminTotalSongs', formatPlayCount(Number(stats.songs.total) || 0));
+        setText('adminSongsTrend', stats.songs.trend);
+        setText('adminTotalPlaylists', formatPlayCount(Number(stats.playlists.total) || 0));
+        setText('adminPlaylistsTrend', stats.playlists.trend);
+        setText('adminTotalAlbums', formatPlayCount(Number(stats.albums.total) || 0));
+        setText('adminAlbumsTrend', stats.albums.trend);
+        setText('adminStatsUpdated', stats.updatedLabel);
+        setText('adminPeriodBadge', stats.periodLabel);
+        renderList('adminTopGenres', stats.topGenres);
+    };
 
-    renderList('adminTopGenres', ADMIN_DEFAULT_STATS.topGenres);
-    renderList('adminTopArtists', ADMIN_DEFAULT_STATS.topArtists);
-    renderList('adminModerationStats', ADMIN_DEFAULT_STATS.moderation);
+    const mapApiStatsToViewModel = (payload) => {
+        const topGeneros = Array.isArray(payload?.topGeneros)
+            ? payload.topGeneros
+            : [];
+
+        return {
+            users: { total: Number(payload?.totalUsuarios) || 0, trend: 'Total acumulado' },
+            artists: { total: Number(payload?.totalArtistas) || 0, trend: 'Total acumulado' },
+            songs: { total: Number(payload?.totalCanciones) || 0, trend: 'Total acumulado' },
+            playlists: { total: Number(payload?.totalPlaylists) || 0, trend: 'Total acumulado' },
+            albums: { total: Number(payload?.totalAlbumes) || 0, trend: 'Total acumulado' },
+            updatedLabel: `Actualizado: ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`,
+            periodLabel: `Top ${Math.max(topGeneros.length, 1)}`,
+            topGenres: topGeneros.length > 0
+                ? topGeneros.map((row, index) => {
+                    const name = row.nombre || row.nom || 'Genero sin nombre';
+                    const songs = Number(row.canciones || row.total_canciones || 0);
+                    return {
+                        label: `${index + 1}. ${name}`,
+                        value: `${formatPlayCount(songs)} canciones`
+                    };
+                })
+                : [{ label: 'Sin datos', value: '0 canciones' }]
+        };
+    };
+
+    applyStats(ADMIN_DEFAULT_STATS);
+
+    const token = getAuthToken();
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    fetch(`${API_URL}/admin/stats`, {
+        method: 'GET',
+        headers,
+        cache: 'no-store'
+    })
+        .then(async (response) => {
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result?.success === false) {
+                throw new Error(result?.message || `Error ${response.status} al obtener estadisticas`);
+            }
+
+            const stats = mapApiStatsToViewModel(result);
+            applyStats(stats);
+        })
+        .catch((error) => {
+            console.error('Error cargando estadisticas de admin:', error);
+            setText('adminStatsUpdated', 'No se pudo actualizar desde el servidor');
+        });
 }
 
 function normalizeSearchText(value) {

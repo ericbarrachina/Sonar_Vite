@@ -59,46 +59,41 @@
                     <article class="admin-stat-card" aria-label="Usuarios registrados">
                         <p class="admin-stat-label">Usuarios registrados</p>
                         <p class="admin-stat-value" id="adminTotalUsers">0</p>
-                        <p class="admin-stat-trend" id="adminUsersTrend">+0 esta semana</p>
+                        <p class="admin-stat-trend" id="adminUsersTrend">Total acumulado</p>
                     </article>
                     <article class="admin-stat-card" aria-label="Artistas activos">
                         <p class="admin-stat-label">Artistas activos</p>
                         <p class="admin-stat-value" id="adminTotalArtists">0</p>
-                        <p class="admin-stat-trend" id="adminArtistsTrend">+0 este mes</p>
+                        <p class="admin-stat-trend" id="adminArtistsTrend">Total acumulado</p>
                     </article>
                     <article class="admin-stat-card" aria-label="Canciones subidas">
                         <p class="admin-stat-label">Canciones subidas</p>
                         <p class="admin-stat-value" id="adminTotalSongs">0</p>
-                        <p class="admin-stat-trend" id="adminSongsTrend">+0 hoy</p>
+                        <p class="admin-stat-trend" id="adminSongsTrend">Total acumulado</p>
                     </article>
                     <article class="admin-stat-card" aria-label="Playlists creadas">
                         <p class="admin-stat-label">Playlists creadas</p>
                         <p class="admin-stat-value" id="adminTotalPlaylists">0</p>
-                        <p class="admin-stat-trend" id="adminPlaylistsTrend">+0 hoy</p>
+                        <p class="admin-stat-trend" id="adminPlaylistsTrend">Total acumulado</p>
+                    </article>
+                    <article class="admin-stat-card" aria-label="Albumes publicados">
+                        <p class="admin-stat-label">Albumes publicados</p>
+                        <p class="admin-stat-value" id="adminTotalAlbums">0</p>
+                        <p class="admin-stat-trend" id="adminAlbumsTrend">Total acumulado</p>
                     </article>
                 </div>
             </section>
 
             <section class="home-canciones-panel admin-detail-panel" aria-label="Detalle de actividad">
                 <div class="home-panel-head">
-                    <h2>Actividad reciente</h2>
-                    <span class="home-badge" id="adminPeriodBadge">Ultimos 7 dias</span>
+                    <h2>Top de generos</h2>
+                    <span class="home-badge" id="adminPeriodBadge">Top 5</span>
                 </div>
 
-                <div class="admin-detail-grid">
-                    <article class="admin-list-card" aria-label="Top generos">
+                <div class="admin-top-wrap">
+                    <article class="admin-list-card admin-top-card" aria-label="Top generos">
                         <h3>Top generos</h3>
-                        <ul id="adminTopGenres" class="admin-list"></ul>
-                    </article>
-
-                    <article class="admin-list-card" aria-label="Top artistas por reproducciones">
-                        <h3>Top artistas (reproducciones)</h3>
-                        <ul id="adminTopArtists" class="admin-list"></ul>
-                    </article>
-
-                    <article class="admin-list-card" aria-label="Estado de moderacion">
-                        <h3>Estado de contenidos</h3>
-                        <ul id="adminModerationStats" class="admin-list"></ul>
+                        <ul id="adminTopGenres" class="admin-list admin-list-centered"></ul>
                     </article>
                 </div>
             </section>
