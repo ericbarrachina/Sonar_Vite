@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sonar - Perfil Artista</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body class="home-page perfil-artista-page">
+	<button class="home-menu-toggle" id="homeMenuToggle" aria-label="Abrir menu lateral">
+		<span></span><span></span><span></span>
+	</button>
+
+	<div class="home-layout">
+		<aside class="home-sidebar" id="homeSidebar">
+			<div class="home-sidebar-header">
+				<a href="/artista/home_artista.html" class="home-logo-link">
+					<img src="/public/Sonar_1_-removebg-preview.png" alt="Sonar Logo" class="home-logo">
+				</a>
+			</div>
+
+			<nav class="home-nav" aria-label="Menu principal">
+				<a href="/artista/home_artista.html" class="home-nav-item">
+					<span class="home-nav-icon"></span>
+					Inicio
+				</a>
+				<a href="/artista/perfil_artista.html" class="home-nav-item active" aria-current="page">
+					<span class="home-nav-icon"></span>
+					Perfil
+				</a>
+			</nav>
+
+			<button id="logoutBtn" class="btn-nav home-logout-btn">Cerrar sesion</button>
+		</aside>
+
+		<main class="home-main-content">
+			<header class="home-main-header">
+				<div class="home-header-text">
+					<h1>Tu perfil de artista</h1>
+					<p class="home-welcome-subtitle">Actualiza tus datos y refuerza la seguridad de tu cuenta profesional.</p>
+				</div>
+				<a href="/artista/home_artista.html" class="home-settings-btn" aria-label="Volver a Home">&#8592;</a>
+			</header>
+
+			<section class="home-canciones-panel perfil-settings-panel" aria-label="Configuracion de perfil de artista">
+				<div class="home-panel-head">
+					<h2>Configuracion de cuenta</h2>
+					<span class="home-badge">Datos profesionales</span>
+				</div>
+
+				<div class="perfil-settings-grid">
+					<article class="perfil-card" aria-label="Bloque para editar nombre de artista">
+						<div class="perfil-card-head">
+							<h3>Cambiar nombre</h3>
+							<p>Actualiza el nombre con el que te ven en Sonar.</p>
+						</div>
+						<form id="artistProfileNameForm" class="login-form perfil-form" autocomplete="off">
+							<div class="form-group">
+								<label for="artistProfileNameInput">Nombre de artista</label>
+								<input type="text" id="artistProfileNameInput" name="artistProfileNameInput" placeholder="Tu nuevo nombre" maxlength="80" required>
+							</div>
+							<button type="submit" class="btn-primary perfil-btn">Guardar nombre</button>
+						</form>
+					</article>
+
+					<article class="perfil-card" aria-label="Bloque para cambiar contrasena">
+						<div class="perfil-card-head">
+							<h3>Cambiar contraseña</h3>
+							<p>Refuerza tu cuenta con una clave nueva y segura.</p>
+						</div>
+						<form id="artistProfilePasswordForm" class="login-form perfil-form" autocomplete="off">
+							<div class="form-group">
+								<label for="artistProfileCurrentPasswordInput">Contraseña actual</label>
+								<input type="password" id="artistProfileCurrentPasswordInput" name="artistProfileCurrentPasswordInput" placeholder="••••••••" required>
+							</div>
+							<div class="form-group">
+								<label for="artistProfileNewPasswordInput">Nueva contraseña</label>
+								<input type="password" id="artistProfileNewPasswordInput" name="artistProfileNewPasswordInput" placeholder="Minimo 8 caracteres" minlength="8" required>
+							</div>
+							<div class="form-group">
+								<label for="artistProfileConfirmPasswordInput">Confirmar nueva contraseña</label>
+								<input type="password" id="artistProfileConfirmPasswordInput" name="artistProfileConfirmPasswordInput" placeholder="Repite la nueva contraseña" minlength="8" required>
+							</div>
+							<button type="submit" class="btn-primary perfil-btn">Cambiar contraseña</button>
+						</form>
+					</article>
+
+					<article class="perfil-card perfil-card-danger" aria-label="Bloque para eliminar cuenta">
+						<div class="perfil-card-head">
+							<h3>Eliminar cuenta</h3>
+							<p>Esta accion es permanente. Se borraran tus canciones, albumes y todos tus datos.</p>
+						</div>
+						<form id="artistProfileDeleteForm" class="login-form perfil-form" autocomplete="off">
+							<div class="form-group">
+								<label for="artistProfileDeletePasswordInput">Confirma tu contraseña</label>
+								<input type="password" id="artistProfileDeletePasswordInput" name="artistProfileDeletePasswordInput" placeholder="Escribe tu contraseña" required>
+							</div>
+							<button type="submit" class="btn-primary perfil-btn perfil-btn-danger">Eliminar mi cuenta</button>
+						</form>
+					</article>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script type="module" src="/src/main.js"></script>
+</body>
+</html>

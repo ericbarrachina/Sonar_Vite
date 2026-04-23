@@ -109,6 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isArtistSongPage = body.classList.contains('artist-song-page');
     const isArtistAlbumPage = body.classList.contains('artist-album-page');
     const isAdminPage = body.classList.contains('admin-page');
+    const isProfilePage = body.classList.contains('perfil-page');
+    const isArtistProfilePage = body.classList.contains('perfil-artista-page');
     const isHomePage = body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage && !body.classList.contains('save-page') && !body.classList.contains('playlist-page') && !body.classList.contains('perfil-page') && !body.classList.contains('buscar-page') && !body.classList.contains('artist-page');
     const isSongLibraryPage = (body.classList.contains('home-page') && !isArtistHomePage && !isArtistSongPage) || body.classList.contains('save-page') || body.classList.contains('playlist-page') || body.classList.contains('buscar-page') || body.classList.contains('artist-page');
 
@@ -178,6 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (body.classList.contains('save-page')) {
         initSavedSongsPage();
+    }
+
+    if (isProfilePage) {
+        initProfileSettingsPage();
+    }
+
+    if (isArtistProfilePage) {
+        initArtistProfileSettingsPage();
     }
 
     if (isArtistHomePage) {
@@ -728,6 +738,420 @@ async function handleLogin(e) {
             errorDiv.textContent = "Error de conexión con el servidor.";
             errorDiv.style.display = 'block';
         }
+    }
+}
+
+async function readJsonSafe(response) {
+    return response.json().catch(() => ({}));
+}
+
+function upsertPerfilFeedback(form, type, message) {
+    if (!form) return;
+
+    let feedback = form.querySelector('.perfil-feedback');
+    if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.className = 'perfil-feedback';
+        form.insertBefore(feedback, form.querySelector('button[type="submit"]'));
+    }
+
+    if (!message) {
+        feedback.textContent = '';
+        feedback.hidden = true;
+        feedback.classList.remove('perfil-feedback-error', 'perfil-feedback-success');
+        return;
+    }
+
+    feedback.textContent = message;
+    feedback.hidden = false;
+    feedback.classList.remove('perfil-feedback-error', 'perfil-feedback-success');
+    feedback.classList.add(type === 'success' ? 'perfil-feedback-success' : 'perfil-feedback-error');
+}
+
+function setFormSubmittingState(form, isSubmitting) {
+    if (!form) return;
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (!submitButton) return;
+
+    if (!submitButton.dataset.originalLabel) {
+        submitButton.dataset.originalLabel = submitButton.textContent || '';
+    }
+
+    submitButton.disabled = Boolean(isSubmitting);
+    submitButton.textContent = isSubmitting ? 'Guardando...' : submitButton.dataset.originalLabel;
+}
+
+function ensureProfileToken() {
+    const token = getAuthToken();
+    if (!token) {
+        alert('Tu sesion ha expirado. Inicia sesion de nuevo.');
+        window.location.replace('/login.html');
+        return '';
+    }
+    return token;
+}
+
+function decodeJwtPayload(token) {
+    try {
+        const parts = String(token || '').split('.');
+        if (parts.length < 2) return null;
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+        const decoded = atob(padded);
+        return JSON.parse(decoded);
+    } catch (error) {
+        return null;
+    }
+}
+
+function ensureArtistProfileToken() {
+    const token = getAuthToken();
+    const artistId = localStorage.getItem('artistId') || '';
+    const tokenPayload = decodeJwtPayload(token);
+    const tokenType = String(tokenPayload?.tipus || '').toLowerCase();
+    const tokenId = Number.parseInt(tokenPayload?.id || '0', 10);
+    const userType = String(localStorage.getItem('userType') || '').toLowerCase();
+    
+    if (!token) {
+        alert('Tu sesion ha expirado. Inicia sesion de nuevo.');
+        window.location.replace('/login.html');
+        return '';
+    }
+    
+    // El token es la fuente de verdad para el tipo de cuenta.
+    if (tokenType !== 'artista') {
+        alert('Solo los artistas pueden acceder a esta pagina.');
+        window.location.replace('/home.html');
+        return '';
+    }
+    
+    // Verificar que hay un ID de artista
+    if (!artistId || Number.parseInt(artistId, 10) <= 0) {
+        alert('Tu sesion no tiene un ID de artista valido.');
+        window.location.replace('/login.html');
+        return '';
+    }
+
+    // Sincroniza ids locales con el id real del token para evitar cruces de sesion.
+    if (Number.isFinite(tokenId) && tokenId > 0 && Number.parseInt(artistId, 10) !== tokenId) {
+        localStorage.setItem('artistId', String(tokenId));
+        localStorage.setItem('userId', String(tokenId));
+        localStorage.setItem('id_usuario', String(tokenId));
+        localStorage.setItem('id_usuari', String(tokenId));
+    }
+
+    if (userType !== 'artista') {
+        localStorage.setItem('userType', 'artista');
+    }
+    
+    return token;
+}
+
+function initProfileSettingsPage() {
+    const aliasForm = document.getElementById('userProfileAliasForm');
+    const passwordForm = document.getElementById('userProfilePasswordForm');
+    const deleteForm = document.getElementById('userProfileDeleteForm');
+
+    const token = ensureProfileToken();
+    if (!token) return;
+
+    const aliasInput = document.getElementById('userProfileAliasInput');
+    if (aliasInput) {
+        aliasInput.value = localStorage.getItem('userAlias') || '';
+    }
+
+    if (aliasForm) {
+        aliasForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            upsertPerfilFeedback(aliasForm, '', '');
+
+            const nuevoAlias = (aliasInput?.value || '').trim();
+            if (!nuevoAlias) {
+                upsertPerfilFeedback(aliasForm, 'error', 'El alias no puede estar vacio.');
+                return;
+            }
+
+            setFormSubmittingState(aliasForm, true);
+
+            try {
+                const response = await fetch(`${API_URL}/actualizar-alias`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nuevoAlias })
+                });
+
+                const data = await readJsonSafe(response);
+                if (!response.ok || data?.success === false) {
+                    upsertPerfilFeedback(aliasForm, 'error', data?.message || 'No se pudo actualizar el alias.');
+                    return;
+                }
+
+                const aliasFinal = String(data?.nuevoAlias || nuevoAlias).trim();
+                localStorage.setItem('userAlias', aliasFinal);
+                upsertPerfilFeedback(aliasForm, 'success', data?.message || 'Alias actualizado correctamente.');
+            } catch (error) {
+                upsertPerfilFeedback(aliasForm, 'error', error?.message || 'Error de conexion con el servidor.');
+            } finally {
+                setFormSubmittingState(aliasForm, false);
+            }
+        });
+    }
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            upsertPerfilFeedback(passwordForm, '', '');
+
+            const contrasyaActual = document.getElementById('userProfileCurrentPasswordInput')?.value || '';
+            const nuevaContrasenya = document.getElementById('userProfileNewPasswordInput')?.value || '';
+            const verificarContrasenya = document.getElementById('userProfileConfirmPasswordInput')?.value || '';
+
+            if (!contrasyaActual || !nuevaContrasenya || !verificarContrasenya) {
+                upsertPerfilFeedback(passwordForm, 'error', 'Todos los campos son requeridos.');
+                return;
+            }
+
+            if (nuevaContrasenya.length < 8) {
+                upsertPerfilFeedback(passwordForm, 'error', 'La nueva contraseña debe tener al menos 8 caracteres.');
+                return;
+            }
+
+            if (nuevaContrasenya !== verificarContrasenya) {
+                upsertPerfilFeedback(passwordForm, 'error', 'Las nuevas contraseñas no coinciden.');
+                return;
+            }
+
+            setFormSubmittingState(passwordForm, true);
+
+            try {
+                const response = await fetch(`${API_URL}/actualizar-contrasenya`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        contrasyaActual,
+                        nuevaContrasenya,
+                        verificarContrasenya
+                    })
+                });
+
+                const data = await readJsonSafe(response);
+                if (!response.ok || data?.success === false) {
+                    upsertPerfilFeedback(passwordForm, 'error', data?.message || 'No se pudo cambiar la contraseña.');
+                    return;
+                }
+
+                passwordForm.reset();
+                upsertPerfilFeedback(passwordForm, 'success', data?.message || 'Contraseña actualizada correctamente.');
+            } catch (error) {
+                upsertPerfilFeedback(passwordForm, 'error', error?.message || 'Error de conexion con el servidor.');
+            } finally {
+                setFormSubmittingState(passwordForm, false);
+            }
+        });
+    }
+
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            upsertPerfilFeedback(deleteForm, '', '');
+
+            const contrasenya = document.getElementById('userProfileDeletePasswordInput')?.value || '';
+            if (!contrasenya) {
+                upsertPerfilFeedback(deleteForm, 'error', 'Debes confirmar tu contraseña para eliminar la cuenta.');
+                return;
+            }
+
+            const confirmed = window.confirm('Esta accion eliminara tu cuenta y todos tus datos. ¿Seguro que quieres continuar?');
+            if (!confirmed) return;
+
+            setFormSubmittingState(deleteForm, true);
+
+            try {
+                const response = await fetch(`${API_URL}/eliminar-cuenta`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ contrasenya })
+                });
+
+                const data = await readJsonSafe(response);
+                if (!response.ok || data?.success === false) {
+                    upsertPerfilFeedback(deleteForm, 'error', data?.message || 'No se pudo eliminar la cuenta.');
+                    return;
+                }
+
+                alert(data?.message || 'Tu cuenta ha sido eliminada correctamente.');
+                logout();
+            } catch (error) {
+                upsertPerfilFeedback(deleteForm, 'error', error?.message || 'Error de conexion con el servidor.');
+            } finally {
+                setFormSubmittingState(deleteForm, false);
+            }
+        });
+    }
+}
+
+function initArtistProfileSettingsPage() {
+    const nameForm = document.getElementById('artistProfileNameForm');
+    const passwordForm = document.getElementById('artistProfilePasswordForm');
+    const deleteForm = document.getElementById('artistProfileDeleteForm');
+
+    const token = ensureArtistProfileToken();
+    if (!token) return;
+
+    const nameInput = document.getElementById('artistProfileNameInput');
+    if (nameInput) {
+        nameInput.value = localStorage.getItem('userName') || '';
+    }
+
+    if (nameForm) {
+        nameForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            upsertPerfilFeedback(nameForm, '', '');
+
+            const nuevoNom = (nameInput?.value || '').trim();
+            if (!nuevoNom) {
+                upsertPerfilFeedback(nameForm, 'error', 'El nombre no puede estar vacio.');
+                return;
+            }
+
+            setFormSubmittingState(nameForm, true);
+
+            try {
+                const response = await fetch(`${API_URL}/actualizar-nom-artista`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nuevoNom })
+                });
+
+                const data = await readJsonSafe(response);
+                console.log('[ARTIST PROFILE] /actualizar-nom-artista status:', response.status);
+                if (!response.ok || data?.success === false) {
+                    upsertPerfilFeedback(nameForm, 'error', data?.message || 'No se pudo actualizar el nombre.');
+                    return;
+                }
+
+                const nomFinal = String(data?.nuevoNom || nuevoNom).trim();
+                localStorage.setItem('userName', nomFinal);
+                upsertPerfilFeedback(nameForm, 'success', data?.message || 'Nombre actualizado correctamente.');
+            } catch (error) {
+                upsertPerfilFeedback(nameForm, 'error', error?.message || 'Error de conexion con el servidor.');
+            } finally {
+                setFormSubmittingState(nameForm, false);
+            }
+        });
+    }
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            upsertPerfilFeedback(passwordForm, '', '');
+
+            const contrasyaActual = document.getElementById('artistProfileCurrentPasswordInput')?.value || '';
+            const nuevaContrasenya = document.getElementById('artistProfileNewPasswordInput')?.value || '';
+            const verificarContrasenya = document.getElementById('artistProfileConfirmPasswordInput')?.value || '';
+
+            if (!contrasyaActual || !nuevaContrasenya || !verificarContrasenya) {
+                upsertPerfilFeedback(passwordForm, 'error', 'Todos los campos son requeridos.');
+                return;
+            }
+
+            if (nuevaContrasenya.length < 8) {
+                upsertPerfilFeedback(passwordForm, 'error', 'La nueva contraseña debe tener al menos 8 caracteres.');
+                return;
+            }
+
+            if (nuevaContrasenya !== verificarContrasenya) {
+                upsertPerfilFeedback(passwordForm, 'error', 'Las nuevas contraseñas no coinciden.');
+                return;
+            }
+
+            setFormSubmittingState(passwordForm, true);
+
+            try {
+                const response = await fetch(`${API_URL}/actualizar-contrasenya-artista`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        contrasyaActual,
+                        nuevaContrasenya,
+                        verificarContrasenya
+                    })
+                });
+
+                const data = await readJsonSafe(response);
+                console.log('[ARTIST PROFILE] /actualizar-contrasenya-artista status:', response.status);
+                if (!response.ok || data?.success === false) {
+                    upsertPerfilFeedback(passwordForm, 'error', data?.message || 'No se pudo cambiar la contraseña.');
+                    return;
+                }
+
+                passwordForm.reset();
+                upsertPerfilFeedback(passwordForm, 'success', data?.message || 'Contraseña actualizada correctamente.');
+            } catch (error) {
+                upsertPerfilFeedback(passwordForm, 'error', error?.message || 'Error de conexion con el servidor.');
+            } finally {
+                setFormSubmittingState(passwordForm, false);
+            }
+        });
+    }
+
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            upsertPerfilFeedback(deleteForm, '', '');
+
+            const contrasenya = document.getElementById('artistProfileDeletePasswordInput')?.value || '';
+            if (!contrasenya) {
+                upsertPerfilFeedback(deleteForm, 'error', 'Debes confirmar tu contraseña para eliminar la cuenta.');
+                return;
+            }
+
+            const confirmed = window.confirm('Esta accion eliminara tu cuenta, todas tus canciones y albumes. ¿Seguro que quieres continuar?');
+            if (!confirmed) return;
+
+            setFormSubmittingState(deleteForm, true);
+
+            try {
+                const response = await fetch(`${API_URL}/eliminar-cuenta-artista`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ contrasenya })
+                });
+
+                const data = await readJsonSafe(response);
+                console.log('[ARTIST PROFILE] /eliminar-cuenta-artista status:', response.status);
+                if (!response.ok || data?.success === false) {
+                    upsertPerfilFeedback(deleteForm, 'error', data?.message || 'No se pudo eliminar la cuenta.');
+                    return;
+                }
+
+                alert(data?.message || 'Tu cuenta ha sido eliminada correctamente.');
+                logout();
+            } catch (error) {
+                upsertPerfilFeedback(deleteForm, 'error', error?.message || 'Error de conexion con el servidor.');
+            } finally {
+                setFormSubmittingState(deleteForm, false);
+            }
+        });
     }
 }
 
