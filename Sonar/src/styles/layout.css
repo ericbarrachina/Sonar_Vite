@@ -1687,18 +1687,6 @@ body.home-page {
     font-size: 0.84rem;
 }
 
-.song-artist-link {
-    color: rgba(255, 255, 255, 0.74);
-    text-decoration: none;
-    border-bottom: 1px dashed rgba(188, 19, 254, 0.48);
-    transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.song-artist-link:hover {
-    color: #fff;
-    border-color: rgba(188, 19, 254, 0.9);
-}
-
 .song-actions {
     display: flex;
     align-items: center;
@@ -1732,19 +1720,6 @@ body.home-page {
     color: #f3ddff;
 }
 
-.remove-saved-btn {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #ffd3d3;
-    border-color: rgba(255, 110, 110, 0.5);
-    background: rgba(255, 110, 110, 0.12);
-}
-
-.remove-saved-btn:hover {
-    border-color: rgba(255, 110, 110, 0.85);
-    background: rgba(255, 110, 110, 0.24);
-}
-
 .playlist-popover {
     position: absolute;
     width: min(265px, 78vw);
@@ -1767,27 +1742,6 @@ body.home-page {
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-.playlist-popover-save {
-    width: 100%;
-    border: 1px solid rgba(188, 19, 254, 0.5);
-    border-radius: 9px;
-    background: rgba(188, 19, 254, 0.18);
-    color: #ffffff;
-    text-align: center;
-    padding: 9px 10px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-}
-
-.playlist-popover-save:hover {
-    background: rgba(188, 19, 254, 0.28);
-    border-color: rgba(188, 19, 254, 0.85);
-    transform: translateY(-1px);
 }
 
 .playlist-popover-option,
